@@ -1396,7 +1396,7 @@ function initAmbientMusic(){
     bgSourceNode = audioCtx.createMediaElementSource(bgAudio);
     bgSourceNode.connect(masterGain);
   }
-  bgAudio.volume = 0.5;
+  bgAudio.volume = 0.25;
   bgAudio.currentTime = 0;
   bgAudio.play().catch(()=>{});
 }
