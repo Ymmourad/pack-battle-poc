@@ -330,6 +330,58 @@ input[type=text]:focus{outline:none;border-color:var(--a)}
 .pack.resist .pack-lid{animation:resistJitter .4s ease}
 @keyframes resistJitter{0%,100%{transform:translateY(0)}25%{transform:translateY(-2px)}50%{transform:translateY(1px)}75%{transform:translateY(-1px)}}
 
+/* ============================================================
+   NEW FEATURES — Stack, Sticker, Card Back, Splash, Viewer,
+   Heat Glow, 3D Tilt, Cascade, Music Pulse
+   ============================================================ */
+
+/* --- PACK STACK PILE (remaining packs behind active) --- */
+.pack-stack{position:absolute;right:-14px;top:8px;z-index:0;display:flex;flex-direction:column-reverse;gap:2px}
+.pack-stack .stack-pack{width:36px;height:46px;border-radius:5px;overflow:hidden;opacity:.7;transform:scale(.9);box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.pack-stack .stack-pack img{width:100%;height:100%;object-fit:cover}
+
+/* --- SEALED STICKER (peels with lid) --- */
+.sealed-sticker{position:absolute;top:4px;right:6px;width:28px;height:18px;border-radius:3px;z-index:6;
+  background:linear-gradient(135deg,rgba(200,220,255,.3),rgba(255,255,255,.15));border:1px solid rgba(255,255,255,.3);
+  display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:800;letter-spacing:.5px;color:rgba(255,255,255,.7);text-transform:uppercase}
+
+/* --- CARD BACK FLIP --- */
+.cardrow .slab-mini{position:relative}
+.cardrow .card-back{position:absolute;inset:0;border-radius:6px;background:linear-gradient(135deg,#1a3a6e,#0e2a5a);
+  display:flex;align-items:center;justify-content:center;font-size:18px;z-index:5;transition:transform .4s,opacity .4s}
+.cardrow .card-back.flipped{transform:rotateY(90deg);opacity:0}
+
+/* --- ROUND SPLASH --- */
+.round-splash{position:fixed;inset:0;z-index:46;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0}
+.round-splash.active{animation:roundSplash 1.5s cubic-bezier(.2,1,.3,1) forwards}
+@keyframes roundSplash{0%{opacity:0;transform:scale(2)}20%{opacity:1;transform:scale(1)}80%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.9)}}
+.round-splash .splash-text{font-size:64px;font-weight:900;letter-spacing:6px;text-transform:uppercase;
+  background:linear-gradient(90deg,var(--a),var(--gold),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 2px 12px rgba(251,191,36,.3))}
+
+/* --- LIVE VIEWER COUNTER --- */
+.viewer-badge{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);font-weight:500}
+.viewer-badge .dot-live{width:6px;height:6px;border-radius:50%;background:#ef4444;animation:livePulse 2s ease infinite}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* --- RARITY HEAT GLOW (pack intensifies) --- */
+.pack.heat-1{filter:brightness(1.05)}
+.pack.heat-2{filter:brightness(1.1) drop-shadow(0 0 8px rgba(255,160,0,.2))}
+.pack.heat-3{filter:brightness(1.15) drop-shadow(0 0 14px rgba(255,100,0,.35))}
+.pack.heat-4{filter:brightness(1.2) drop-shadow(0 0 20px rgba(255,50,0,.5))}
+
+/* --- MOUSE TRACKING 3D TILT --- */
+.pack.tiltable{transition:transform .1s ease-out}
+
+/* --- MATCH-END CARD CASCADE --- */
+.cascade-card{position:fixed;z-index:60;pointer-events:none;border-radius:8px;overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,.5)}
+
+/* --- AMBIENT MUSIC (visual pulse indicator) --- */
+.music-pulse{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:4;display:flex;gap:3px;align-items:flex-end;height:16px}
+.music-pulse span{width:3px;background:var(--gold);border-radius:1px;animation:musicBar 1.2s ease-in-out infinite alternate}
+@keyframes musicBar{0%{height:4px}100%{height:14px}}
+
 /* ---------- RESPONSIVE ---------- */
 @media(max-width:820px){
   .arena{grid-template-columns:1fr}
@@ -353,8 +405,14 @@ input[type=text]:focus{outline:none;border-color:var(--a)}
 <!-- CLOSER banner -->
 <div class="closer-banner" id="closerBanner">CLOSER</div>
 
+<!-- Round splash -->
+<div class="round-splash" id="roundSplash"><div class="splash-text" id="splashText">ROUND 2</div></div>
+
 <!-- Ambient floating particles -->
 <div class="ambient-particles" id="ambientParticles"></div>
+
+<!-- Music pulse indicator -->
+<div class="music-pulse" id="musicPulse"><span style="animation-delay:0s"></span><span style="animation-delay:.2s"></span><span style="animation-delay:.4s"></span><span style="animation-delay:.1s"></span><span style="animation-delay:.3s"></span></div>
 
 <div class="wrap">
   <h1>Courtyard · Pack Battle</h1>
@@ -399,6 +457,7 @@ input[type=text]:focus{outline:none;border-color:var(--a)}
     <div class="topbar">
       <span class="pill"><b id="sumCat"></b> · <b id="sumType"></b> · <b id="sumBo"></b></span>
       <div style="display:flex;gap:10px;align-items:center">
+        <span class="viewer-badge"><span class="dot-live"></span><span id="viewerCount">1,247 watching</span></span>
         <span class="pill" id="roundPill">Round 1</span>
         <button class="btn ghost" onclick="backToSetup()">✕ Exit</button>
       </div>
@@ -648,12 +707,12 @@ function updateTypeHint(){
 function updatePackVisual(side){
   const pack=$("#pack"+side);
   pack.className = "pack";
-  // Determine pack image based on type (normal vs slab)
   const packImg = state.type==="slab" ? "assets/pack-slab.png" : "assets/pack-normal.png";
   pack.innerHTML =
     `<div class="pack-img"><img src="${packImg}" alt="Pack"></div>`+
-    `<div class="pack-lid"><img src="${packImg}" alt=""><div class="shimmer"></div></div>`+
+    `<div class="pack-lid"><img src="${packImg}" alt=""><div class="shimmer"></div><div class="sealed-sticker">SEALED</div></div>`+
     `<div class="tag-overlay" id="tag${side}"><small>Pack 1/${state.packs}</small></div>`;
+  updatePackStack(side);
 }
 
 function setPackTag(side){
@@ -677,7 +736,7 @@ function startBattle(){
   state.players.B.name=$("#nameB").value||"Opponent";
   state.players.A.cumulative=0; state.players.B.cumulative=0;
   resetPlayer(state.players.A); resetPlayer(state.players.B);
-  initAudio(); resumeAudio();
+  initAudio(); resumeAudio(); initAmbientMusic();
 
   // Update ambient + pack visuals
   const cat=CATEGORIES[state.cat];
@@ -705,6 +764,8 @@ function startRound(){
   $("#roundPill").textContent=`Round ${state.round+1}`;
   setPackTag("A"); setPackTag("B");
   updateTotals(); setLeader();
+  // Round splash for rounds 2+
+  if(state.round>=1){ showRoundSplash(state.round+1); }
 }
 
 async function runLoop(token){
@@ -764,12 +825,16 @@ async function ripPack(side,token){
     p.roundTotal+=card.value; p.cumulative+=card.value;
     if(card.value>p.bestCard) p.bestCard=card.value;
 
+    // Heat glow based on tier (applied before reveal)
+    setHeatGlow(side, card.tier);
+
     // Staggered delay: common=fast, rare=slight pause, epic=hold, chase=cinematic
     const tierDelay = card.tier==="chase" ? 600 : card.tier==="epic" ? 450 : card.tier==="rare" ? 350 : 200;
     await sleep(tierDelay);
     if(!state.active || token!==state.token) return;
 
-    addCardRow(side,card); addTickerCard(card,side); addLog(side,card); updateTotals(); setLeader();
+    addCardRow(side,card); showCardBackFlip($("#hand"+side).firstChild);
+    addTickerCard(card,side); addLog(side,card); updateTotals(); setLeader();
     playCard(card.value);
 
     // Screen-edge flash for big pulls
@@ -787,12 +852,14 @@ async function ripPack(side,token){
     }
   }
 
-  // --- Release cinematic focus ---
+  // --- Release cinematic focus + reset heat ---
   stage.classList.remove("zoomed");
+  pack.classList.remove("heat-1","heat-2","heat-3","heat-4");
   $("#cinematicOverlay").classList.remove("active");
 
   p.packsRipped++;
   pack.classList.remove("split","bursting");
+  updatePackStack(side);
   $("#left"+side).textContent=state.packs-p.packsRipped;
   setPackTag(side);
   await sleep(260);
@@ -946,6 +1013,7 @@ function finishMatch(){
     winner = ca!==cb ? (ca>cb?"A":"B") : (state.score.A>=need?"A":(state.score.A===state.score.B?(Math.random()<0.5?"A":"B"):(state.score.A>state.score.B?"A":"B")));
   } else winner=state.score.A>=need?"A":"B";
   playMatchWin();
+  triggerCascade(winner);
   const folder=(state.folded.A&&!state.folded.B)?"A":((state.folded.B&&!state.folded.A)?"B":null);
   showResult(winner, folder?("takes it — "+state.players[folder].name+" folded"):"wins the match!", `${state.score.A}–${state.score.B}`, folder);
 }
@@ -1182,20 +1250,156 @@ function initAmbientParticles(){
 function playFold(){
   if(!audioCtx||muted) return;
   const t=audioCtx.currentTime;
-  // Low thud + descending tone
   const o=audioCtx.createOscillator(); const g=audioCtx.createGain();
   o.type="sine"; o.frequency.setValueAtTime(120,t); o.frequency.exponentialRampToValueAtTime(60,t+0.4);
   g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.35,t+0.03);
   g.gain.exponentialRampToValueAtTime(0.0001,t+0.5);
   o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+0.6);
-  // Noise burst (slab crack)
   const src=audioCtx.createBufferSource(); src.buffer=getNoise();
   const bp=audioCtx.createBiquadFilter(); bp.type="lowpass"; bp.frequency.value=800;
   const ng=audioCtx.createGain(); ng.gain.setValueAtTime(0.3,t); ng.gain.exponentialRampToValueAtTime(0.0001,t+0.25);
   src.connect(bp); bp.connect(ng); ng.connect(masterGain); src.start(t); src.stop(t+0.3);
 }
 
-buildSetup(); wireControls(); loadRealCards(); initAmbientParticles();
+/* ============================================================
+   PACK STACK PILE
+   ============================================================ */
+function updatePackStack(side){
+  const pack=$("#pack"+side);
+  const p=state.players[side];
+  const remaining = state.packs - p.packsRipped - 1; // exclude current
+  let stackEl = pack.querySelector(".pack-stack");
+  if(!stackEl){
+    stackEl=document.createElement("div"); stackEl.className="pack-stack";
+    pack.prepend(stackEl);
+  }
+  const packImg = state.type==="slab" ? "assets/pack-slab.png" : "assets/pack-normal.png";
+  let html="";
+  for(let i=0;i<Math.min(remaining,4);i++){
+    html+=`<div class="stack-pack"><img src="${packImg}" alt=""></div>`;
+  }
+  stackEl.innerHTML=html;
+}
+
+/* ============================================================
+   SEALED STICKER (added to lid via updatePackVisual)
+   ============================================================ */
+// Sticker is rendered inside the lid in updatePackVisual
+
+/* ============================================================
+   CARD BACK FLIP
+   ============================================================ */
+function showCardBackFlip(row){
+  const slab=row.querySelector(".slab-mini");
+  if(!slab) return;
+  const back=document.createElement("div");
+  back.className="card-back";
+  back.textContent = state.type==="slab" ? "🏆" : "✦";
+  slab.appendChild(back);
+  setTimeout(()=>{ back.classList.add("flipped"); setTimeout(()=>back.remove(),400); },200/state.speed);
+}
+
+/* ============================================================
+   ROUND SPLASH
+   ============================================================ */
+function showRoundSplash(roundNum){
+  const splash=$("#roundSplash");
+  $("#splashText").textContent="ROUND "+roundNum;
+  splash.classList.remove("active");
+  void splash.offsetWidth;
+  splash.classList.add("active");
+  setTimeout(()=>{ splash.classList.remove("active"); },1500);
+}
+
+/* ============================================================
+   LIVE VIEWER COUNTER
+   ============================================================ */
+let viewerCount=1247, viewerIv=null;
+function initViewerCounter(){
+  viewerIv=setInterval(()=>{
+    if(!state.active){ clearInterval(viewerIv); return; }
+    viewerCount += Math.floor(Math.random()*5)-1;
+    if(viewerCount<800) viewerCount=800;
+    $("#viewerCount").textContent=viewerCount.toLocaleString()+" watching";
+  },3000);
+}
+
+/* ============================================================
+   RARITY HEAT GLOW
+   ============================================================ */
+function setHeatGlow(side, tier){
+  const pack=$("#pack"+side);
+  pack.classList.remove("heat-1","heat-2","heat-3","heat-4");
+  if(tier==="rare") pack.classList.add("heat-1");
+  else if(tier==="epic") pack.classList.add("heat-2");
+  else if(tier==="chase") pack.classList.add("heat-3");
+}
+
+/* ============================================================
+   MOUSE TRACKING 3D TILT
+   ============================================================ */
+function initPackTilt(){
+  ["A","B"].forEach(side=>{
+    const stage=document.getElementById("col"+side);
+    if(!stage) return;
+    stage.addEventListener("mousemove",e=>{
+      const pack=$("#pack"+side);
+      if(pack.classList.contains("split")) return;
+      const rect=stage.getBoundingClientRect();
+      const x=(e.clientX-rect.left)/rect.width - 0.5;
+      const y=(e.clientY-rect.top)/rect.height - 0.5;
+      pack.style.transform=`perspective(600px) rotateY(${x*8}deg) rotateX(${-y*8}deg)`;
+    });
+    stage.addEventListener("mouseleave",()=>{
+      const pack=$("#pack"+side);
+      if(!pack.classList.contains("split")) pack.style.transform="";
+    });
+  });
+}
+
+/* ============================================================
+   MATCH-END CARD CASCADE
+   ============================================================ */
+function triggerCascade(winnerSide){
+  const p=state.players[winnerSide];
+  const packImg = state.type==="slab" ? "assets/pack-slab.png" : "assets/pack-normal.png";
+  const colors=["#fbbf24","#38bdf8","#a78bfa","#f472b6","#3ee08f"];
+  for(let i=0;i<15;i++){
+    setTimeout(()=>{
+      const el=document.createElement("div");
+      el.className="cascade-card";
+      const w=40+Math.random()*30, h=w*1.4;
+      el.style.width=w+"px"; el.style.height=h+"px";
+      el.style.left=Math.random()*90+5+"%";
+      el.style.background=`linear-gradient(135deg,${pick(colors)}33,#0d1225)`;
+      el.style.border=`1px solid ${pick(colors)}`;
+      el.style.animationDuration=(1.5+Math.random()*2)+"s";
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),4000);
+    }, i*120);
+  }
+}
+
+/* ============================================================
+   AMBIENT MUSIC BED (Web Audio synth loop)
+   ============================================================ */
+let musicOsc=null, musicGain=null;
+function initAmbientMusic(){
+  // Low drone + subtle pulse
+  if(!audioCtx) return;
+  musicOsc=audioCtx.createOscillator();
+  musicOsc.type="sine"; musicOsc.frequency.value=55;
+  musicGain=audioCtx.createGain();
+  musicGain.gain.value=0.03;
+  // LFO for subtle pulse
+  const lfo=audioCtx.createOscillator(); lfo.type="sine"; lfo.frequency.value=0.3;
+  const lfoGain=audioCtx.createGain(); lfoGain.gain.value=0.015;
+  lfo.connect(lfoGain); lfoGain.connect(musicGain.gain);
+  musicOsc.connect(musicGain); musicGain.connect(masterGain);
+  musicOsc.start(); lfo.start();
+}
+
+buildSetup(); wireControls(); loadRealCards(); initAmbientParticles(); initPackTilt(); initViewerCounter();
 </script>
 </body>
 </html>
