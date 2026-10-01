@@ -295,6 +295,54 @@ input[type=text]:focus{outline:none;border-color:var(--a)}
 /* ---------- PARTICLES ---------- */
 .particle{position:fixed;z-index:99;pointer-events:none;border-radius:50%;will-change:transform,opacity}
 
+/* ============================================================
+   CINEMATIC EFFECTS — Screen Darken, Zoom, Flash, Closer
+   ============================================================ */
+/* --- Cinematic focus (darken + zoom on pack) --- */
+.cinematic-overlay{position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0;transition:opacity .5s ease}
+.cinematic-overlay.active{opacity:1}
+.cinematic-overlay::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 40%,transparent 30%,rgba(4,6,12,.85) 100%)}
+.cinematic-overlay::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 40% 35% at 50% 40%,transparent 20%,rgba(4,6,12,.95) 80%);opacity:0}
+.cinematic-overlay.deep::after{opacity:1}
+
+/* --- Pack zoom during cinematic --- */
+.pack-stage.zoomed .pack{transform:scale(1.35)!important;transition:transform .5s cubic-bezier(.2,1,.3,1)}
+
+/* --- Screen-edge flash (big pulls) --- */
+.edge-flash{position:fixed;inset:0;z-index:45;pointer-events:none;opacity:0}
+.edge-flash.active{animation:edgeFlash .6s ease-out}
+@keyframes edgeFlash{0%{opacity:1;box-shadow:inset 0 0 80px 20px rgba(251,191,36,.4)}100%{opacity:0;box-shadow:inset 0 0 80px 20px transparent}}
+.edge-flash.chase.active{animation:edgeFlashChase .8s ease-out}
+@keyframes edgeFlashChase{0%{opacity:1;box-shadow:inset 0 0 120px 40px rgba(244,114,182,.5)}100%{opacity:0;box-shadow:inset 0 0 120px 40px transparent}}
+
+/* --- CLOSER banner --- */
+.closer-banner{position:fixed;top:12%;left:50%;transform:translateX(-50%) scale(0);z-index:48;pointer-events:none;
+  font-size:42px;font-weight:900;letter-spacing:4px;text-transform:uppercase;
+  background:linear-gradient(90deg,var(--a),var(--gold),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:none;filter:drop-shadow(0 2px 12px rgba(251,191,36,.4))}
+.closer-banner.show{animation:closerPop 1.2s cubic-bezier(.2,1.5,.3,1) forwards}
+@keyframes closerPop{0%{transform:translateX(-50%) scale(0);opacity:0}30%{transform:translateX(-50%) scale(1.1);opacity:1}70%{transform:translateX(-50%) scale(1);opacity:1}100%{transform:translateX(-50%) scale(.95);opacity:0}}
+
+/* --- FOLD SHATTER (player column breaks apart) --- */
+.player.folded{animation:none;filter:grayscale(1) brightness(.4);transition:filter .6s ease}
+.player.shatter{animation:shatterBreak .8s cubic-bezier(.3,1,.4,1) forwards}
+@keyframes shatterBreak{0%{transform:scale(1);opacity:1;filter:grayscale(0)}30%{transform:scale(1.02) rotate(1deg);filter:grayscale(.5) brightness(1.2)}60%{transform:scale(.98) rotate(-1deg);filter:grayscale(.8)}100%{transform:scale(.95);opacity:.4;filter:grayscale(1) brightness(.3)}}
+.fold-stamp{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:20;
+  font-size:28px;font-weight:900;letter-spacing:3px;color:rgba(255,255,255,.6);text-transform:uppercase;
+  border:3px solid rgba(255,255,255,.4);padding:8px 20px;border-radius:4px;background:rgba(0,0,0,.3)}
+.fold-stamp.show{animation:stampIn .5s cubic-bezier(.2,1.5,.3,1) forwards}
+@keyframes stampIn{0%{transform:translate(-50%,-50%) scale(2);opacity:0}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
+
+/* --- AMBIENT FLOATING PARTICLES (CSS-only) --- */
+.ambient-particles{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.ambient-particles span{position:absolute;width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.15);
+  animation:particleDrift linear infinite}
+@keyframes particleDrift{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+
+/* --- PACK RESISTANCE HOLD (brief pause before peel) --- */
+.pack.resist .pack-lid{animation:resistJitter .4s ease}
+@keyframes resistJitter{0%,100%{transform:translateY(0)}25%{transform:translateY(-2px)}50%{transform:translateY(1px)}75%{transform:translateY(-1px)}}
+
 /* ---------- RESPONSIVE ---------- */
 @media(max-width:820px){
   .arena{grid-template-columns:1fr}
@@ -308,6 +356,18 @@ input[type=text]:focus{outline:none;border-color:var(--a)}
 
 <!-- Ambient background -->
 <div class="ambient ambient-pokemon" id="ambient"></div>
+
+<!-- Cinematic overlay (darken + vignette) -->
+<div class="cinematic-overlay" id="cinematicOverlay"></div>
+
+<!-- Screen-edge flash -->
+<div class="edge-flash" id="edgeFlash"></div>
+
+<!-- CLOSER banner -->
+<div class="closer-banner" id="closerBanner">CLOSER</div>
+
+<!-- Ambient floating particles -->
+<div class="ambient-particles" id="ambientParticles"></div>
 
 <div class="wrap">
   <h1>Courtyard · Pack Battle</h1>
@@ -630,7 +690,9 @@ function startBattle(){
   state.token++; const token=state.token;
   state.active=true; state.auto=true; state.folded={A:false,B:false};
   $("#foldBadgeA").classList.add("hidden"); $("#foldBadgeB").classList.add("hidden");
-  $("#colA").classList.remove("folded"); $("#colB").classList.remove("folded");
+  $("#colA").classList.remove("folded","shatter"); $("#colB").classList.remove("folded","shatter");
+  // Remove any fold stamps
+  document.querySelectorAll(".fold-stamp").forEach(el=>el.remove());
   state.round=0; state.score={A:0,B:0}; state.log=[];
   state.players.A.name=$("#nameA").value||"You";
   state.players.B.name=$("#nameB").value||"Opponent";
@@ -690,29 +752,67 @@ async function runLoop(token){
 async function ripPack(side,token){
   const p=state.players[side];
   const pack=$("#pack"+side);
+  const stage=pack.closest(".pack-stage");
   setPackTag(side);
-  // Pre-rip glow (builds anticipation)
+
+  // --- Cinematic focus: darken screen + zoom pack ---
+  $("#cinematicOverlay").classList.add("active");
+  stage.classList.add("zoomed");
+  await sleep(500);
+  if(!state.active || token!==state.token) return;
+
+  // --- Pre-rip glow (builds anticipation) ---
   pack.classList.add("pre-rip"); await sleep(400);
   if(!state.active || token!==state.token) return;
   pack.classList.remove("pre-rip");
-  pack.classList.add("shake"); await sleep(350);
+
+  // --- Resistance hold: pack "resists" before peeling ---
+  pack.classList.add("resist"); await sleep(350);
+  if(!state.active || token!==state.token) return;
+  pack.classList.remove("resist");
+
+  // --- Shake + CUT ---
+  pack.classList.add("shake"); await sleep(300);
   if(!state.active || token!==state.token) return;
   void pack.offsetWidth;
   pack.classList.remove("shake"); pack.classList.add("split","bursting"); playRip();
-  await sleep(160);
+  await sleep(180);
+
+  // --- Staggered card reveals by tier ---
   const n=CARDS_PER_PACK[state.type];
   for(let i=0;i<n;i++){
     if(!state.active || token!==state.token) return;
     const card=genCard();
     p.roundTotal+=card.value; p.cumulative+=card.value;
     if(card.value>p.bestCard) p.bestCard=card.value;
+
+    // Staggered delay: common=fast, rare=slight pause, epic=hold, chase=cinematic
+    const tierDelay = card.tier==="chase" ? 600 : card.tier==="epic" ? 450 : card.tier==="rare" ? 350 : 200;
+    await sleep(tierDelay);
+    if(!state.active || token!==state.token) return;
+
     addCardRow(side,card); addTickerCard(card,side); addLog(side,card); updateTotals(); setLeader();
     playCard(card.value);
+
+    // Screen-edge flash for big pulls
+    if(card.value>=500){ triggerEdgeFlash("chase"); }
+    else if(card.value>=300){ triggerEdgeFlash("epic"); }
+
     if(card.value>=300){ flashChase(side); playChase(); }
-    // Chase-tier: show pedestal
-    if(card.tier==="chase"){ await showPedestal(card); }
-    await sleep(320);
+    checkCloser(side, card);
+
+    // Chase-tier: full cinematic pedestal
+    if(card.tier==="chase"){
+      $("#cinematicOverlay").classList.add("deep");
+      await showPedestal(card);
+      $("#cinematicOverlay").classList.remove("deep");
+    }
   }
+
+  // --- Release cinematic focus ---
+  stage.classList.remove("zoomed");
+  $("#cinematicOverlay").classList.remove("active");
+
   p.packsRipped++;
   pack.classList.remove("split","bursting");
   $("#left"+side).textContent=state.packs-p.packsRipped;
@@ -895,9 +995,17 @@ function endBreather(){
 function fold(side){
   if(!state.active) return;
   state.folded[side]=true;
+  const col=$("#col"+side);
+  // Shatter animation
+  col.classList.add("shatter");
+  // Add fold stamp
+  const stamp=document.createElement("div");
+  stamp.className="fold-stamp show";
+  stamp.textContent="FOLDED";
+  col.appendChild(stamp);
   $("#foldBadge"+side).classList.remove("hidden");
-  $("#col"+side).classList.add("folded");
   addLogNote("🏳️ "+state.players[side].name+" folded — no more stakes");
+  playFold();
   endBreather();
 }
 function showResult(winner,title,scoreLine,folder){
@@ -1054,7 +1162,62 @@ function punchCol(side){
   setTimeout(()=>col.classList.remove("punch"),320);
 }
 
-buildSetup(); wireControls(); loadRealCards();
+/* ============================================================
+   CINEMATIC HELPERS — Edge Flash, Closer, Ambient Particles
+   ============================================================ */
+function triggerEdgeFlash(type){
+  const el=$("#edgeFlash");
+  el.className="edge-flash";
+  void el.offsetWidth;
+  el.classList.add("active", type==="chase"?"chase":"epic");
+  setTimeout(()=>{ el.className="edge-flash"; },800);
+}
+
+function checkCloser(side, card){
+  // Detect when trailing player overtakes with this pull
+  const other = side==="A" ? "B" : "A";
+  const before = state.players[other].roundTotal > state.players[side].roundTotal - card.value;
+  const after = state.players[side].roundTotal > state.players[other].roundTotal;
+  if(before && after && card.value >= 100){
+    const banner=$("#closerBanner");
+    banner.textContent="CLOSER";
+    banner.className="closer-banner show";
+    setTimeout(()=>{ banner.className="closer-banner"; },1300);
+  }
+}
+
+function initAmbientParticles(){
+  const container=$("#ambientParticles");
+  if(!container) return;
+  for(let i=0;i<25;i++){
+    const s=document.createElement("span");
+    const size=2+Math.random()*3;
+    s.style.width=size+"px"; s.style.height=size+"px";
+    s.style.left=Math.random()*100+"%";
+    s.style.animationDuration=(8+Math.random()*14)+"s";
+    s.style.animationDelay=(Math.random()*12)+"s";
+    s.style.opacity=0.1+Math.random()*0.2;
+    container.appendChild(s);
+  }
+}
+
+function playFold(){
+  if(!audioCtx||muted) return;
+  const t=audioCtx.currentTime;
+  // Low thud + descending tone
+  const o=audioCtx.createOscillator(); const g=audioCtx.createGain();
+  o.type="sine"; o.frequency.setValueAtTime(120,t); o.frequency.exponentialRampToValueAtTime(60,t+0.4);
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.35,t+0.03);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+0.5);
+  o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+0.6);
+  // Noise burst (slab crack)
+  const src=audioCtx.createBufferSource(); src.buffer=getNoise();
+  const bp=audioCtx.createBiquadFilter(); bp.type="lowpass"; bp.frequency.value=800;
+  const ng=audioCtx.createGain(); ng.gain.setValueAtTime(0.3,t); ng.gain.exponentialRampToValueAtTime(0.0001,t+0.25);
+  src.connect(bp); bp.connect(ng); ng.connect(masterGain); src.start(t); src.stop(t+0.3);
+}
+
+buildSetup(); wireControls(); loadRealCards(); initAmbientParticles();
 </script>
 </body>
 </html>
