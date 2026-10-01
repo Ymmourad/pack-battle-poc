@@ -77,52 +77,39 @@ input[type=text]:focus{outline:none;border-color:var(--a)}
 .packs-left{margin-top:10px;font-size:11px;color:var(--muted);letter-spacing:.3px}
 
 /* ============================================================
-   PACK VISUALS — Foil/Metallic with Cut-Open Animation
+   PACK VISUALS — Real Product Images with Cut-Open Animation
    ============================================================ */
 .pack-stage{position:relative;height:170px;display:flex;align-items:center;justify-content:center;margin-bottom:6px}
-.pack{position:relative;width:120px;height:154px;border-radius:12px;z-index:1;perspective:800px}
+.pack{position:relative;width:120px;height:154px;border-radius:12px;z-index:1;perspective:800px;overflow:visible}
 
-/* --- Pack LID (top portion that peels off when cut) --- */
+/* --- Pack IMAGE (full product photo as body) --- */
+.pack-img{
+  position:absolute;inset:0;border-radius:12px;overflow:hidden;z-index:1;
+  box-shadow:0 8px 32px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.3);
+}
+.pack-img img{width:100%;height:100%;object-fit:cover;border-radius:12px}
+
+/* --- Pack LID (top portion that peels off — clips same image) --- */
 .pack-lid{
   position:absolute;top:0;left:0;right:0;height:13%;border-radius:12px 12px 4px 4px;z-index:5;
-  transform-origin:bottom center;transform-style:preserve-3d;
+  transform-origin:bottom center;transform-style:preserve-3d;overflow:hidden;
 }
-.pack-lid .lid-foil{position:absolute;inset:0;border-radius:12px 12px 4px 4px;overflow:hidden;
-  box-shadow:0 -2px 8px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.15)}
-.pack-lid .lid-foil::before{content:"";position:absolute;inset:0;border-radius:inherit;
-  background:linear-gradient(135deg,rgba(255,255,255,.1) 0%,transparent 50%)}
+.pack-lid img{width:100%;height:auto;aspect-ratio:120/154;display:block;margin-top:0}
 
-/* --- Pack BODY (bottom portion that stays) --- */
+/* --- Pack BODY (bottom portion that stays — shows full image) --- */
 .pack-body{
-  position:absolute;top:12%;left:0;right:0;bottom:0;border-radius:4px 4px 12px 12px;z-index:1;
-  overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.1);
+  position:absolute;top:12%;left:0;right:0;bottom:0;border-radius:4px 4px 12px 12px;z-index:2;
+  overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5);
 }
-.pack-body .body-foil{position:absolute;inset:0;border-radius:inherit;overflow:hidden}
-.pack-body .body-foil::before{content:"";position:absolute;inset:0;border-radius:inherit;
-  background:linear-gradient(135deg,rgba(255,255,255,.08) 0%,transparent 40%,rgba(255,255,255,.04) 60%,transparent 80%)}
+.pack-body img{width:100%;height:auto;aspect-ratio:120/154;display:block;margin-top:-17.5%}
 
-/* --- Shimmer (shared overlay) --- */
+/* --- Shimmer overlay (subtle foil effect on image) --- */
 .shimmer{
   position:absolute;inset:-50%;width:200%;height:200%;
-  background:linear-gradient(45deg,transparent 40%,rgba(255,255,255,.1) 45%,rgba(255,255,255,.18) 50%,rgba(255,255,255,.1) 55%,transparent 60%);
-  animation:shimmerMove 4s ease-in-out infinite;transform:rotate(25deg);pointer-events:none;z-index:2;
+  background:linear-gradient(45deg,transparent 40%,rgba(255,255,255,.06) 45%,rgba(255,255,255,.1) 50%,rgba(255,255,255,.06) 55%,transparent 60%);
+  animation:shimmerMove 4s ease-in-out infinite;transform:rotate(25deg);pointer-events:none;z-index:3;
 }
 @keyframes shimmerMove{0%,100%{transform:translateX(-30%) rotate(25deg)}50%{transform:translateX(30%) rotate(25deg)}}
-
-/* --- Category color fills (applied to both lid & body foils) --- */
-.pack-pokemon .lid-foil,.pack-pokemon .body-foil{background:linear-gradient(160deg,#1a4a8a 0%,#2a6abf 30%,#1a3a7a 50%,#0e2a5a 100%)}
-.pack-onepiece .lid-foil,.pack-onepiece .body-foil{background:linear-gradient(160deg,#7a1a1a 0%,#c43a2a 35%,#8a2020 55%,#4a1010 100%)}
-.pack-sports .lid-foil,.pack-sports .body-foil{background:linear-gradient(160deg,#1a2a6a 0%,#3b4ac4 35%,#2a3aa4 55%,#1a2050 100%)}
-.pack-ghost .lid-foil,.pack-ghost .body-foil{background:linear-gradient(160deg,#1a0a0a 0%,#3a1a0a 30%,#1a0e05 60%,#0a0505 100%)}
-
-/* --- Pack branding elements (on body) --- */
-.pack-logo{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:800;letter-spacing:1.5px;color:rgba(255,255,255,.85);text-transform:uppercase;z-index:3}
-.pack-ball{position:absolute;top:48%;left:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;
-  background:linear-gradient(135deg,#fff 49%,#e8edf8 50%,#3b82f6 50%);box-shadow:0 4px 16px rgba(0,0,0,.3),inset 0 -2px 4px rgba(0,0,0,.2);border:3px solid #1e293b;z-index:3}
-.pack-ball::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid #1e293b}
-.pack-emblem{position:absolute;top:48%;left:50%;transform:translate(-50%,-50%);width:56px;height:56px;border-radius:50%;
-  background:linear-gradient(135deg,#fbbf24,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:3}
-.pack-name{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:rgba(255,255,255,.9);letter-spacing:.5px;z-index:3}
 
 /* --- Pack tag overlay --- */
 .pack .tag-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;
@@ -423,9 +410,9 @@ input[type=text]:focus{outline:none;border-color:var(--a)}
         <div class="pname"><span><span class="dot" style="background:var(--a)"></span><span id="pAName"></span></span>
           <span class="fold-badge hidden" id="foldBadgeA">🏳️ Folded</span></div>
         <div class="pack-stage">
-          <div class="pack pack-pokemon" id="packA">
-            <div class="pack-lid"><div class="lid-foil"><div class="shimmer"></div></div></div>
-            <div class="pack-body"><div class="body-foil"><div class="shimmer"></div></div><div class="pack-ball"></div><div class="pack-name">Pokémon</div></div>
+          <div class="pack" id="packA">
+            <div class="pack-img"><img src="assets/pack-normal.png" alt="Pack"></div>
+            <div class="pack-lid"><img src="assets/pack-normal.png" alt=""><div class="shimmer"></div></div>
             <div class="tag-overlay" id="tagA"><small>Pack 1/5</small></div>
           </div>
         </div>
@@ -457,9 +444,9 @@ input[type=text]:focus{outline:none;border-color:var(--a)}
         <div class="pname"><span><span class="dot" style="background:var(--b)"></span><span id="pBName"></span></span>
           <span class="fold-badge hidden" id="foldBadgeB">🏳️ Folded</span></div>
         <div class="pack-stage">
-          <div class="pack pack-pokemon" id="packB">
-            <div class="pack-lid"><div class="lid-foil"><div class="shimmer"></div></div></div>
-            <div class="pack-body"><div class="body-foil"><div class="shimmer"></div></div><div class="pack-ball"></div><div class="pack-name">Pokémon</div></div>
+          <div class="pack" id="packB">
+            <div class="pack-img"><img src="assets/pack-normal.png" alt="Pack"></div>
+            <div class="pack-lid"><img src="assets/pack-normal.png" alt=""><div class="shimmer"></div></div>
             <div class="tag-overlay" id="tagB"><small>Pack 1/5</small></div>
           </div>
         </div>
@@ -660,20 +647,12 @@ function updateTypeHint(){
    ============================================================ */
 function updatePackVisual(side){
   const pack=$("#pack"+side);
-  const cat=CATEGORIES[state.cat];
-  pack.className = "pack " + cat.packClass;
-  // Build inner content: lid (top) + body (bottom) + branding
-  let emblemHTML="";
-  if(state.cat==="pokemon"){
-    emblemHTML=`<div class="pack-ball"></div>`;
-  } else if(state.cat==="onepiece"){
-    emblemHTML=`<div class="pack-emblem">☠</div>`;
-  } else {
-    emblemHTML=`<div class="pack-emblem">🏆</div>`;
-  }
+  pack.className = "pack";
+  // Determine pack image based on type (normal vs slab)
+  const packImg = state.type==="slab" ? "assets/pack-slab.png" : "assets/pack-normal.png";
   pack.innerHTML =
-    `<div class="pack-lid"><div class="lid-foil"><div class="shimmer"></div></div></div>`+
-    `<div class="pack-body"><div class="body-foil"><div class="shimmer"></div></div>${emblemHTML}<div class="pack-name">${cat.label}</div></div>`+
+    `<div class="pack-img"><img src="${packImg}" alt="Pack"></div>`+
+    `<div class="pack-lid"><img src="${packImg}" alt=""><div class="shimmer"></div></div>`+
     `<div class="tag-overlay" id="tag${side}"><small>Pack 1/${state.packs}</small></div>`;
 }
 
@@ -704,7 +683,6 @@ function startBattle(){
   const cat=CATEGORIES[state.cat];
   $("#ambient").className = "ambient " + cat.ambient;
   updatePackVisual("A"); updatePackVisual("B");
-
   $("#setup").classList.add("hidden"); $("#battle").classList.remove("hidden");
   $("#overlay").classList.add("hidden");
   $("#sumCat").textContent=CATEGORIES[state.cat].label;
