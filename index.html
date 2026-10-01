@@ -1071,6 +1071,7 @@ function showResult(winner,title,scoreLine,folder){
 
 function backToSetup(){
   state.active=false; state.token++;
+  stopAmbientMusic();
   $("#battle").classList.add("hidden"); $("#setup").classList.remove("hidden");
   $("#overlay").classList.add("hidden");
 }
@@ -1381,22 +1382,26 @@ function triggerCascade(winnerSide){
 }
 
 /* ============================================================
-   AMBIENT MUSIC BED (Web Audio synth loop)
+   AMBIENT MUSIC BED (audio file loop)
    ============================================================ */
-let musicOsc=null, musicGain=null;
+let bgAudio=null, bgSourceNode=null;
 function initAmbientMusic(){
-  // Low drone + subtle pulse
   if(!audioCtx) return;
-  musicOsc=audioCtx.createOscillator();
-  musicOsc.type="sine"; musicOsc.frequency.value=55;
-  musicGain=audioCtx.createGain();
-  musicGain.gain.value=0.03;
-  // LFO for subtle pulse
-  const lfo=audioCtx.createOscillator(); lfo.type="sine"; lfo.frequency.value=0.3;
-  const lfoGain=audioCtx.createGain(); lfoGain.gain.value=0.015;
-  lfo.connect(lfoGain); lfoGain.connect(musicGain.gain);
-  musicOsc.connect(musicGain); musicGain.connect(masterGain);
-  musicOsc.start(); lfo.start();
+  if(!bgAudio){
+    bgAudio = new Audio("assets/background-music.mp3");
+    bgAudio.loop = true;
+    bgAudio.crossOrigin = "anonymous";
+  }
+  if(!bgSourceNode){
+    bgSourceNode = audioCtx.createMediaElementSource(bgAudio);
+    bgSourceNode.connect(masterGain);
+  }
+  bgAudio.volume = 0.5;
+  bgAudio.currentTime = 0;
+  bgAudio.play().catch(()=>{});
+}
+function stopAmbientMusic(){
+  if(bgAudio){ bgAudio.pause(); }
 }
 
 buildSetup(); wireControls(); loadRealCards(); initAmbientParticles(); initPackTilt(); initViewerCounter();
