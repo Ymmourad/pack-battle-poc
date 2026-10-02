@@ -1,0 +1,490 @@
+/* ============================================================
+   COURTYARD PACK BATTLES — Skin.Club-style battles UI
+   (port of original cinematic CSS + new lobby/room styles)
+   ============================================================ */
+:root{
+  --bg:#060a14; --panel:#0d1225; --panel-2:#131b33; --panel-3:#1a2444;
+  --line:#1e2a4a; --line-light:#2a3a5e;
+  --text:#e8edf8; --muted:#7a86a8; --green:#3ee08f;
+  --a:#38bdf8; --b:#fb7185; --gold:#fbbf24; --chase-pink:#f472b6;
+  --slab-border:#c8d4e6; --slab-label-bg:linear-gradient(180deg,#f0f4fa,#dce4f0);
+  --shadow-deep:0 20px 60px rgba(0,0,0,.55);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+  min-height:100%; padding:0; overflow-x:hidden;
+}
+.wrap{max-width:1200px;margin:0 auto;padding:24px 16px 80px;position:relative;z-index:2}
+
+/* ---------- AMBIENT BACKGROUND (category-themed) ---------- */
+.ambient{position:fixed;inset:0;z-index:0;pointer-events:none;transition:background 1.2s ease,opacity .8s}
+.ambient-pokemon{background:radial-gradient(ellipse 140% 90% at 50% -20%,#1a3a6e 0%,#0a1628 45%,var(--bg) 75%)}
+.ambient-onepiece{background:radial-gradient(ellipse 140% 90% at 50% -20%,#4a1a1a 0%,#1a0e0e 45%,var(--bg) 75%)}
+.ambient-sports{background:radial-gradient(ellipse 140% 90% at 50% -20%,#1a2a5a 0%,#0e1428 45%,var(--bg) 75%)}
+
+/* ---------- TYPOGRAPHY ---------- */
+h1{font-size:22px;font-weight:800;letter-spacing:-.3px;margin:0 0 6px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+
+/* ---------- PANELS / BUTTONS ---------- */
+.card-panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:var(--shadow-deep)}
+.field{margin-bottom:18px}
+.field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px;font-weight:600}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;min-width:90px;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+  border-radius:10px;padding:10px 14px;font-size:13px;font-weight:500;cursor:pointer;transition:.18s}
+.seg button:hover{border-color:var(--line-light);background:var(--panel-3)}
+.seg button.active{background:linear-gradient(180deg,#1e3a6e,#14234a);border-color:var(--gold);color:#fff;box-shadow:0 0 12px rgba(251,191,36,.15)}
+.seg.small button{min-width:44px;padding:8px 0;font-variant-numeric:tabular-nums}
+input[type=text]{width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+  border-radius:10px;padding:10px 14px;font-size:14px;transition:border-color .2s}
+input[type=text]:focus{outline:none;border-color:var(--a)}
+.hint{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.4}
+.btn{background:linear-gradient(180deg,#3ee08f,#22b573);color:#06231a;border:none;border-radius:12px;
+  padding:14px 24px;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-top:8px;transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(62,224,143,.25)}
+.btn.ghost{background:var(--panel-2);color:var(--text);border:1px solid var(--line);font-weight:500;margin-top:0;width:auto;padding:8px 14px;font-size:12px}
+.btn.danger{background:#3a1420;color:#ff9db0;border:1px solid #6b2537;font-weight:600;width:auto;padding:8px 14px;font-size:12px;margin-top:0}
+
+/* ============================================================
+   LOBBY (Skin.Club battles list)
+   ============================================================ */
+.lobby-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.lobby-title h1{margin:0}
+.lobby-title .sub{margin:0}
+.live-stats{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.stat-pill{background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:11px;color:var(--muted)}
+.stat-pill b{color:var(--text);font-weight:700;margin-right:4px}
+
+.bankroll-pill{display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,rgba(62,224,143,.12),var(--panel-2));
+  border:1px solid rgba(62,224,143,.35);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;color:var(--green);
+  font-variant-numeric:tabular-nums;transition:box-shadow .3s}
+.bankroll-pill.bump-up{animation:bankUp .6s ease}
+.bankroll-pill.bump-down{animation:bankDown .6s ease}
+@keyframes bankUp{0%{box-shadow:0 0 0 0 rgba(62,224,143,.5)}100%{box-shadow:0 0 0 14px rgba(62,224,143,0)}}
+@keyframes bankDown{0%{box-shadow:0 0 0 0 rgba(251,113,133,.5)}100%{box-shadow:0 0 0 14px rgba(251,113,133,0)}}
+.recharge-btn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:6px 10px;font-size:11px;cursor:pointer}
+.recharge-btn:hover{border-color:var(--green);color:var(--green)}
+
+/* ---------- FILTER BAR ---------- */
+.filterbar{display:flex;align-items:center;gap:18px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);
+  border-radius:14px;padding:12px 16px;margin-bottom:14px}
+.fgroup{display:flex;align-items:center;gap:8px}
+.fgroup .flabel{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:700}
+.fbtn{background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;transition:.15s}
+.fbtn:hover{border-color:var(--line-light)}
+.fbtn.active{background:linear-gradient(180deg,#1e3a6e,#14234a);border-color:var(--gold);color:#fff;font-weight:700}
+.sortbar{display:flex;align-items:center;gap:10px;margin-left:auto}
+.sortbar select{background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:6px 10px;font-size:12px}
+.reset-btn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer}
+.reset-btn:hover{border-color:var(--b);color:var(--b)}
+
+/* ---------- BATTLE TABLE ---------- */
+.btable-head,.brow{display:grid;grid-template-columns:130px 1fr 150px 240px;gap:14px;align-items:center}
+.btable-head{padding:0 16px 8px;font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:700}
+.brow{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:10px;cursor:pointer;
+  transition:border-color .2s,transform .15s}
+.brow:hover{border-color:var(--line-light);transform:translateY(-1px)}
+.brow:hover .join-btn{border-color:var(--green);color:var(--green)}
+.brow.locked{opacity:.65}
+
+.b-status{display:flex;flex-direction:column;gap:4px;font-size:12px}
+.b-live{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#ef4444;display:inline-flex;align-items:center;gap:5px}
+.b-live::before{content:"";width:6px;height:6px;border-radius:50%;background:#ef4444;animation:livePulse 2s ease infinite}
+.b-waiting{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+.b-rounds{color:var(--muted);font-size:11px}
+.b-rounds b{color:var(--text)}
+
+.b-scenario{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.scat{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-right:4px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:4px 8px 4px 4px}
+.chip img{width:26px;height:32px;object-fit:cover;border-radius:4px}
+.chip .cname{font-size:11.5px;font-weight:600;white-space:nowrap}
+.chip .qty{font-size:9px;font-weight:800;color:var(--gold);background:rgba(251,191,36,.12);border-radius:4px;padding:1px 4px;margin-left:2px}
+.details-btn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:7px;font-size:10.5px;padding:4px 8px;cursor:pointer}
+.details-btn:hover{border-color:var(--a);color:var(--a)}
+
+.b-cost{text-align:right;font-variant-numeric:tabular-nums}
+.b-cost .cur{font-size:10px;color:var(--muted);margin-right:3px}
+.b-cost .amt{font-size:17px;font-weight:800}
+.b-cost .per{display:block;font-size:9.5px;color:var(--muted)}
+
+.b-players{display:flex;align-items:center;gap:8px}
+.pfill{font-size:11px;color:var(--muted);white-space:nowrap}
+.avatars{display:flex;align-items:center}
+.avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;
+  color:#fff;border:2px solid var(--panel);margin-left:-6px;position:relative}
+.avatar:first-child{margin-left:0}
+.avatar .crown{position:absolute;top:-9px;right:-7px;font-size:9px}
+.avatar.empty{background:var(--panel-3)!important;border-style:dashed;color:transparent}
+.join-btn{margin-left:auto;background:linear-gradient(180deg,#1e3a6e,#14234a);border:1px solid var(--line-light);color:#fff;
+  border-radius:9px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;transition:.15s}
+.join-btn:hover{box-shadow:0 0 14px rgba(62,224,143,.25)}
+.join-btn.full{background:none;border-color:var(--line);color:var(--muted);cursor:default}
+
+/* ---------- DETAILS MODAL ---------- */
+.detail-panel h3{margin:0 0 10px;font-size:15px}
+.detail-row{display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--line)}
+.detail-row span:first-child{color:var(--muted)}
+.mode-desc{font-size:12px;color:var(--muted);line-height:1.5;margin:12px 0;padding:10px 12px;background:var(--panel-2);border-radius:10px}
+
+/* ============================================================
+   BATTLE ROOM
+   ============================================================ */
+.room-top{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.pf-btn{background:var(--panel-2);border:1px solid var(--line-light);color:var(--text);border-radius:9px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer}
+.pf-btn:hover{border-color:var(--gold);color:var(--gold)}
+.room-head{display:flex;align-items:center;gap:18px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);
+  border-radius:14px;padding:12px 16px;margin-bottom:16px}
+.rh-block{display:flex;flex-direction:column;gap:2px}
+.rh-label{font-size:9.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:700}
+.rh-value{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+.case-strip{display:flex;gap:8px;flex-wrap:wrap;flex:1;min-width:200px}
+.case-strip .chip{cursor:default}
+.rh-cost{text-align:right;margin-left:auto}
+.rh-cost .rh-value{color:var(--gold);font-size:17px}
+
+/* ---------- ARENA LAYOUT (N players) ---------- */
+.arena{display:grid;gap:14px;align-items:stretch}
+.arena.cols-2{grid-template-columns:1fr 130px 1fr}
+.arena.cols-3{grid-template-columns:repeat(3,1fr)}
+.arena.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:1000px){.arena.cols-4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:820px){.arena.cols-3,.arena.cols-4{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.arena.cols-2,.arena.cols-3,.arena.cols-4{grid-template-columns:1fr}}
+
+.player{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;min-height:360px;position:relative;overflow:hidden}
+.player.lead{border-color:rgba(251,191,36,.5);box-shadow:0 0 0 2px rgba(251,191,36,.2),0 0 40px rgba(251,191,36,.08)}
+.player.chaseflash{animation:chaseflash .8s ease}
+@keyframes chaseflash{0%{box-shadow:0 0 0 5px rgba(251,191,36,.9),0 0 60px rgba(251,191,36,.4)}100%{box-shadow:none}}
+.pname{font-size:13px;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pname .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:8px;box-shadow:0 0 8px currentColor}
+.pa{color:var(--a)} .pb{color:var(--b)} .pc{color:#a78bfa} .pd{color:#fbbf24}
+.pname .crown-mini{font-size:11px}
+.streak-badge{font-size:10px;font-weight:800;color:var(--gold);background:rgba(251,191,36,.12);border-radius:6px;padding:2px 7px;font-variant-numeric:tabular-nums}
+.round-total{font-size:34px;font-weight:900;margin-top:10px;font-variant-numeric:tabular-nums;letter-spacing:.5px;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+.cum{color:var(--muted);font-size:11.5px;margin-top:2px}
+.packs-left{margin-top:8px;font-size:11px;color:var(--muted);letter-spacing:.3px}
+
+/* ---------- BOT STAGE ---------- */
+.bot-stage{position:relative;height:170px;display:flex;align-items:center;justify-content:center;margin-bottom:6px}
+.bot-pack{position:relative;width:92px;height:118px;border-radius:10px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.bot-pack img{width:100%;height:100%;object-fit:cover}
+.bot-pack.ripping{animation:idleFloat 1s ease-in-out infinite}
+.bot-stage .bot-tag{position:absolute;bottom:-4px;background:rgba(6,10,20,.85);border:1px solid var(--line);border-radius:7px;
+  padding:3px 9px;font-size:10px;color:var(--muted);font-weight:600}
+
+/* ============================================================
+   PACK VISUALS — Real Product Images with Cut-Open Animation
+   ============================================================ */
+.pack-stage{position:relative;height:170px;display:flex;align-items:center;justify-content:center;margin-bottom:6px}
+.pack{position:relative;width:120px;height:154px;border-radius:12px;z-index:1;perspective:800px;overflow:visible}
+
+/* --- Pack IMAGE (full product photo as body) --- */
+.pack-img{
+  position:absolute;inset:0;border-radius:12px;overflow:hidden;z-index:1;
+  box-shadow:0 8px 32px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.3);
+}
+.pack-img img{width:100%;height:100%;object-fit:cover;border-radius:12px}
+
+/* --- Pack LID (top portion that peels off — clips same image) --- */
+.pack-lid{
+  position:absolute;top:0;left:0;right:0;height:13%;border-radius:12px 12px 4px 4px;z-index:5;
+  transform-origin:bottom center;transform-style:preserve-3d;overflow:hidden;
+}
+.pack-lid img{width:100%;height:auto;aspect-ratio:120/154;display:block;margin-top:0}
+
+/* --- Pack BODY (bottom portion that stays — shows full image) --- */
+.pack-body{
+  position:absolute;top:12%;left:0;right:0;bottom:0;border-radius:4px 4px 12px 12px;z-index:2;
+  overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5);
+}
+.pack-body img{width:100%;height:auto;aspect-ratio:120/154;display:block;margin-top:-17.5%}
+
+/* --- Shimmer overlay (subtle foil effect on image) --- */
+.shimmer{
+  position:absolute;inset:-50%;width:200%;height:200%;
+  background:linear-gradient(45deg,transparent 40%,rgba(255,255,255,.06) 45%,rgba(255,255,255,.1) 50%,rgba(255,255,255,.06) 55%,transparent 60%);
+  animation:shimmerMove 4s ease-in-out infinite;transform:rotate(25deg);pointer-events:none;z-index:3;
+}
+@keyframes shimmerMove{0%,100%{transform:translateX(-30%) rotate(25deg)}50%{transform:translateX(30%) rotate(25deg)}}
+
+/* --- Pack tag overlay --- */
+.pack .tag-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;
+  font-weight:900;font-size:11px;letter-spacing:1.5px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.7);transition:opacity .3s;pointer-events:none}
+.pack .tag-overlay small{font-size:8px;font-weight:600;letter-spacing:.5px;opacity:.8;margin-top:4px}
+
+/* --- Pack idle float --- */
+.pack:not(.split):not(.bursting){animation:idleFloat 3s ease-in-out infinite}
+@keyframes idleFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-4px) rotate(.5deg)}}
+
+/* --- Pre-rip glow --- */
+.pack.pre-rip{animation:idleFloat 3s ease-in-out infinite, preRipGlow 1.2s ease-in-out}
+@keyframes preRipGlow{0%{filter:brightness(1)}50%{filter:brightness(1.4) drop-shadow(0 0 20px rgba(255,200,50,.4))}100%{filter:brightness(1)}}
+
+/* --- CUT ANIMATION: lid peels off from top --- */
+.pack.shake{animation:shake .35s ease}
+@keyframes shake{0%,100%{transform:rotate(0) scale(1)}25%{transform:rotate(-3deg) translateX(-3px) scale(1.02)}50%{transform:rotate(3deg) translateX(3px) scale(1.03)}75%{transform:rotate(-2deg) scale(1.01)}}
+
+.pack.split .pack-lid{
+  animation:lidPeel .8s cubic-bezier(.3,1,.4,1) forwards;
+}
+@keyframes lidPeel{
+  0%{transform:rotateX(0) translateY(0);opacity:1}
+  30%{transform:rotateX(-20deg) translateY(-6px)}
+  100%{transform:rotateX(-75deg) translateY(-40px) scale(.9);opacity:0}
+}
+.pack.split .pack-body{
+  animation:bodyReveal .5s ease-out forwards;
+}
+@keyframes bodyReveal{
+  0%{filter:brightness(1)}
+  40%{filter:brightness(1.3)}
+  100%{filter:brightness(1)}
+}
+/* Burst flash at cut line */
+.pack.bursting::after{content:"";position:absolute;left:50%;top:13%;width:160px;height:40px;border-radius:50%;
+  background:radial-gradient(ellipse,rgba(255,255,255,.5) 0%,transparent 70%);transform:translate(-50%,-50%) scale(0);opacity:1;z-index:8;animation:cutFlash .4s ease-out forwards}
+@keyframes cutFlash{0%{transform:translate(-50%,-50%) scale(0);opacity:.9}100%{transform:translate(-50%,-50%) scale(2.5);opacity:0}}
+
+/* ============================================================
+   GRADED SLAB CARD FRAME (CGC/PSA Style)
+   ============================================================ */
+.hand{margin-top:12px;display:flex;flex-direction:column;gap:8px;overflow:auto;max-height:340px;padding-right:4px}
+.hand::-webkit-scrollbar{width:4px}
+.hand::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
+
+.cardrow{display:flex;align-items:center;gap:10px;background:var(--panel-2);
+  border:1px solid var(--line);border-left:3px solid var(--c,#888);border-radius:10px;padding:8px 10px;
+  animation:cardIn .5s cubic-bezier(.2,.85,.2,1)}
+@keyframes cardIn{from{opacity:0;transform:translateY(-14px) scale(.92)}to{opacity:1;transform:none}}
+
+/* --- Slab holder (mini version in hand) --- */
+.slab-mini{position:relative;width:52px;height:62px;border-radius:6px;overflow:hidden;flex:none;
+  background:#1a2030;border:1.5px solid var(--slab-border);box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.slab-mini .slab-label{position:absolute;top:0;left:0;right:0;height:16px;background:var(--slab-label-bg);
+  display:flex;align-items:center;padding:0 4px;font-size:5.5px;font-weight:700;color:#3a4a6a;z-index:2}
+.slab-mini .slab-art{position:absolute;top:16px;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.slab-mini .slab-art img{width:100%;height:100%;object-fit:cover}
+.slab-mini .slab-art .mono{font-weight:900;font-size:20px;color:#fff;text-shadow:0 1px 3px #000}
+
+/* --- Rarity tier animations --- */
+.cardrow.t-uncommon{animation:cardInU .5s cubic-bezier(.2,.85,.2,1)}
+.cardrow.t-rare{animation:cardInR .65s cubic-bezier(.2,.9,.2,1.05)}
+.cardrow.t-epic{animation:cardInE .75s cubic-bezier(.2,.9,.2,1.08);box-shadow:0 0 16px -2px var(--c),0 0 40px -8px var(--c)}
+.cardrow.t-chase{animation:cardInC 1s cubic-bezier(.18,1.1,.22,1.1);box-shadow:0 0 20px 0 var(--c),0 0 50px -4px var(--c)}
+@keyframes cardInU{from{opacity:0;transform:translateY(12px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes cardInR{0%{opacity:0;transform:translateY(18px) scale(.88);filter:brightness(1.8)}45%{opacity:1}100%{opacity:1;transform:none;filter:brightness(1)}}
+@keyframes cardInE{0%{opacity:0;transform:translateY(22px) scale(.84)}35%{opacity:1;transform:scale(1.05)}100%{transform:none}}
+@keyframes cardInC{0%{opacity:0;transform:translateY(28px) scale(.78)}30%{opacity:1}45%{transform:scale(1.08)}62%{transform:scale(.99)}100%{transform:none}}
+
+.cardrow .nm{flex:1;font-size:12px;font-weight:600;line-height:1.35;overflow:hidden;text-overflow:ellipsis}
+.cardrow .rar{font-size:9px;text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+.val{font-variant-numeric:tabular-nums;font-weight:800;color:var(--green);white-space:nowrap;font-size:13px}
+.val.pop{animation:pop .5s ease}
+@keyframes pop{0%{transform:scale(1.4);filter:brightness(1.5)}100%{transform:scale(1)}}
+.cardrow.big{border-left-color:var(--gold);background:linear-gradient(90deg,rgba(251,191,36,.15),var(--panel-2))}
+.cardrow.big .val{color:var(--gold)}
+
+/* --- Latest-pull highlight (bot grids) --- */
+.cardrow.latest{border-color:var(--gold);box-shadow:0 0 12px rgba(251,191,36,.25)}
+
+/* ============================================================
+   PEDESTAL DISPLAY (Chase-tier full reveal)
+   ============================================================ */
+.pedestal-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;
+  background:rgba(4,6,12,.85);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .4s}
+.pedestal-overlay.active{opacity:1;pointer-events:auto}
+.pedestal-stage{position:relative;display:flex;flex-direction:column;align-items:center;gap:20px}
+.pedestal-card{position:relative;width:220px;height:300px;border-radius:14px;overflow:hidden;
+  background:#0a0f1e;border:2px solid var(--slab-border);box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 40px rgba(251,191,36,.15);
+  animation:pedestalRise .8s cubic-bezier(.2,1.2,.3,1) forwards}
+@keyframes pedestalRise{0%{transform:translateY(60px) scale(.7);opacity:0}100%{transform:translateY(0) scale(1);opacity:1}}
+.pedestal-card .slab-label-full{position:absolute;top:0;left:0;right:0;height:42px;background:var(--slab-label-bg);
+  display:flex;align-items:center;padding:0 10px;font-size:10px;font-weight:700;color:#3a4a6a;z-index:2}
+.pedestal-card .slab-label-full .grade{margin-left:auto;font-size:18px;font-weight:900;color:#1a2a4a}
+.pedestal-card .card-art-area{position:absolute;top:42px;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;background:#0d1525}
+.pedestal-card .card-art-area img{width:90%;height:85%;object-fit:cover;border-radius:6px}
+.pedestal-card .card-art-area .mono{font-weight:900;font-size:60px;color:#fff;text-shadow:0 2px 8px #000}
+.pedestal-base{width:180px;height:36px;border-radius:50%;background:radial-gradient(ellipse,rgba(200,212,230,.15) 0%,transparent 70%);
+  position:relative;margin-top:-10px}
+.pedestal-base::after{content:"";position:absolute;inset:8px 40px;border-radius:50%;background:linear-gradient(180deg,rgba(200,212,230,.08),transparent)}
+.pedestal-info{text-align:center}
+.pedestal-info .pname-ped{font-size:16px;font-weight:700;margin-bottom:4px}
+.pedestal-info .fmv{font-size:22px;font-weight:900;color:var(--gold);font-variant-numeric:tabular-nums}
+
+/* ============================================================
+   VS COLUMN / ROUND INFO
+   ============================================================ */
+.vs{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 4px}
+.vs .sign{font-size:48px;font-weight:900;background:linear-gradient(180deg,var(--a),var(--b));
+  -webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:2px;text-shadow:none}
+.score{display:flex;gap:12px;font-size:32px;font-weight:900;margin-top:8px}
+.score span{color:var(--muted)} .score .a{color:var(--a)} .score .b{color:var(--b)}
+.roundlbl{font-size:11px;color:var(--muted);margin-top:8px;text-transform:uppercase;letter-spacing:.7px}
+.leader-tag{margin-top:8px;font-size:11px;color:var(--gold);min-height:14px;font-weight:600}
+
+/* ---------- LOG ---------- */
+.logwrap{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px}
+.loghead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.loghead h3{margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
+.log{max-height:260px;overflow:auto;display:flex;flex-direction:column;gap:5px;padding-right:4px}
+.log::-webkit-scrollbar{width:3px}
+.log::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
+.logrow{display:flex;align-items:center;gap:8px;font-size:12px;background:var(--panel-2);border-radius:7px;padding:6px 9px}
+.tagname{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logrow .lnm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logrow .lval{color:var(--green);font-weight:700;font-variant-numeric:tabular-nums}
+.lognote{display:flex;justify-content:center;font-size:12px;color:var(--gold);padding:3px;font-style:italic}
+
+/* ---------- CONTROLS ---------- */
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;align-items:center}
+.speedbar{display:flex;gap:6px;margin-left:auto}
+.speedbar button{background:var(--panel-2);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 9px;font-size:12px;cursor:pointer;transition:.15s}
+.speedbar button.active{color:#fff;border-color:var(--gold)}
+
+/* ---------- OVERLAY (Match End) ---------- */
+.overlay{position:fixed;inset:0;background:rgba(4,6,12,.8);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;padding:20px;z-index:50}
+.modal{background:var(--panel);border:1px solid var(--line-light);border-radius:20px;padding:32px;max-width:480px;text-align:center;animation:cardIn .4s ease;box-shadow:var(--shadow-deep)}
+.modal .big{font-size:28px;font-weight:900;margin-bottom:8px}
+.modal .who{color:var(--gold);font-size:15px;font-weight:600}
+.modal p{color:var(--muted);margin:12px 0;font-size:14px;line-height:1.5}
+.modal .takesall{font-size:22px;color:var(--green);font-weight:900;margin:16px 0}
+.hidden{display:none!important}
+
+/* ---------- PARTICLES ---------- */
+.particle{position:fixed;z-index:99;pointer-events:none;border-radius:50%;will-change:transform,opacity}
+
+/* ============================================================
+   CINEMATIC EFFECTS — Screen Darken, Zoom, Flash, Closer
+   ============================================================ */
+.cinematic-overlay{position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0;transition:opacity .5s ease}
+.cinematic-overlay.active{opacity:1}
+.cinematic-overlay::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 40%,transparent 30%,rgba(4,6,12,.85) 100%)}
+.cinematic-overlay::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 40% 35% at 50% 40%,transparent 20%,rgba(4,6,12,.95) 80%);opacity:0}
+.cinematic-overlay.deep::after{opacity:1}
+
+/* --- Pack zoom during cinematic --- */
+.pack-stage.zoomed .pack{transform:scale(1.35)!important;transition:transform .5s cubic-bezier(.2,1,.3,1)}
+
+/* --- Screen-edge flash (big pulls) --- */
+.edge-flash{position:fixed;inset:0;z-index:45;pointer-events:none;opacity:0}
+.edge-flash.active{animation:edgeFlash .6s ease-out}
+@keyframes edgeFlash{0%{opacity:1;box-shadow:inset 0 0 80px 20px rgba(251,191,36,.4)}100%{opacity:0;box-shadow:inset 0 0 80px 20px transparent}}
+.edge-flash.chase.active{animation:edgeFlashChase .8s ease-out}
+@keyframes edgeFlashChase{0%{opacity:1;box-shadow:inset 0 0 120px 40px rgba(244,114,182,.5)}100%{opacity:0;box-shadow:inset 0 0 120px 40px transparent}}
+
+/* --- CLOSER banner --- */
+.closer-banner{position:fixed;top:12%;left:50%;transform:translateX(-50%) scale(0);z-index:48;pointer-events:none;
+  font-size:42px;font-weight:900;letter-spacing:4px;text-transform:uppercase;
+  background:linear-gradient(90deg,var(--a),var(--gold),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 2px 12px rgba(251,191,36,.4))}
+.closer-banner.show{animation:closerPop 1.2s cubic-bezier(.2,1.5,.3,1) forwards}
+@keyframes closerPop{0%{transform:translateX(-50%) scale(0);opacity:0}30%{transform:translateX(-50%) scale(1.1);opacity:1}70%{transform:translateX(-50%) scale(1);opacity:1}100%{transform:translateX(-50%) scale(.95);opacity:0}}
+
+/* --- AMBIENT FLOATING PARTICLES (CSS-only) --- */
+.ambient-particles{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.ambient-particles span{position:absolute;width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.15);
+  animation:particleDrift linear infinite}
+@keyframes particleDrift{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+
+/* --- PACK RESISTANCE HOLD (brief pause before peel) --- */
+.pack.resist .pack-lid{animation:resistJitter .4s ease}
+@keyframes resistJitter{0%,100%{transform:translateY(0)}25%{transform:translateY(-2px)}50%{transform:translateY(1px)}75%{transform:translateY(-1px)}}
+
+/* ============================================================
+   NEW FEATURES — Stack, Sticker, Card Back, Splash, Viewer,
+   Heat Glow, 3D Tilt, Cascade, Music Pulse
+   ============================================================ */
+.pack-stack{position:absolute;right:-14px;top:8px;z-index:0;display:flex;flex-direction:column-reverse;gap:2px}
+.pack-stack .stack-pack{width:36px;height:46px;border-radius:5px;overflow:hidden;opacity:.7;transform:scale(.9);box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.pack-stack .stack-pack img{width:100%;height:100%;object-fit:cover}
+
+/* --- SEALED STICKER (peels with lid) --- */
+.sealed-sticker{position:absolute;top:4px;right:6px;width:28px;height:18px;border-radius:3px;z-index:6;
+  background:linear-gradient(135deg,rgba(200,220,255,.3),rgba(255,255,255,.15));border:1px solid rgba(255,255,255,.3);
+  display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:800;letter-spacing:.5px;color:rgba(255,255,255,.7);text-transform:uppercase}
+
+/* --- CARD BACK FLIP --- */
+.cardrow .slab-mini{position:relative}
+.cardrow .card-back{position:absolute;inset:0;border-radius:6px;background:linear-gradient(135deg,#1a3a6e,#0e2a5a);
+  display:flex;align-items:center;justify-content:center;font-size:18px;z-index:5;transition:transform .4s,opacity .4s}
+.cardrow .card-back.flipped{transform:rotateY(90deg);opacity:0}
+
+/* --- ROUND SPLASH --- */
+.round-splash{position:fixed;inset:0;z-index:46;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0}
+.round-splash.active{animation:roundSplash 1.5s cubic-bezier(.2,1,.3,1) forwards}
+@keyframes roundSplash{0%{opacity:0;transform:scale(2)}20%{opacity:1;transform:scale(1)}80%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.9)}}
+.round-splash .splash-text{font-size:64px;font-weight:900;letter-spacing:6px;text-transform:uppercase;
+  background:linear-gradient(90deg,var(--a),var(--gold),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 2px 12px rgba(251,191,36,.3))}
+
+/* --- LIVE VIEWER COUNTER --- */
+.viewer-badge{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);font-weight:500}
+.viewer-badge .dot-live{width:6px;height:6px;border-radius:50%;background:#ef4444;animation:livePulse 2s ease infinite}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* --- RARITY HEAT GLOW (pack intensifies) --- */
+.pack.heat-1{filter:brightness(1.05)}
+.pack.heat-2{filter:brightness(1.1) drop-shadow(0 0 8px rgba(255,160,0,.2))}
+.pack.heat-3{filter:brightness(1.15) drop-shadow(0 0 14px rgba(255,100,0,.35))}
+.pack.heat-4{filter:brightness(1.2) drop-shadow(0 0 20px rgba(255,50,0,.5))}
+
+/* --- MOUSE TRACKING 3D TILT --- */
+.pack.tiltable{transition:transform .1s ease-out}
+
+/* --- MATCH-END CARD CASCADE --- */
+.cascade-card{position:fixed;z-index:60;pointer-events:none;border-radius:8px;overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,.5)}
+
+/* --- AMBIENT MUSIC (visual pulse indicator) --- */
+.music-pulse{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:4;display:flex;gap:3px;align-items:flex-end;height:16px}
+.music-pulse span{width:3px;background:var(--gold);border-radius:1px;animation:musicBar 1.2s ease-in-out infinite alternate}
+@keyframes musicBar{0%{height:4px}100%{height:14px}}
+
+/* ============================================================
+   ROUND RESULT BANNER (between rounds)
+   ============================================================ */
+.round-banner{position:fixed;top:38%;left:50%;transform:translate(-50%,-50%) scale(.8);z-index:47;pointer-events:none;
+  background:rgba(10,15,30,.92);border:1px solid var(--line-light);border-radius:18px;padding:22px 34px;text-align:center;
+  opacity:0;transition:opacity .3s,transform .3s;box-shadow:var(--shadow-deep)}
+.round-banner.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.round-banner .rb-title{font-size:24px;font-weight:900;letter-spacing:1px}
+.round-banner .rb-title.win{color:var(--green)}
+.round-banner .rb-title.lose{color:var(--b)}
+.round-banner .rb-sub{font-size:12px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
+
+/* ============================================================
+   PROVABLY FAIR MODAL
+   ============================================================ */
+.pf-wrap{position:fixed;inset:0;z-index:80;background:rgba(4,6,12,.75);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;padding:20px}
+.pf-panel{background:var(--panel);border:1px solid var(--line-light);border-radius:18px;padding:26px;max-width:520px;width:100%;
+  box-shadow:var(--shadow-deep);text-align:left}
+.pf-panel h2{margin:0 0 4px;font-size:18px}
+.pf-seedrow{font-size:13px;color:var(--muted);margin:14px 0}
+.pf-seedrow code{background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:3px 8px;color:var(--gold);font-weight:700;letter-spacing:.5px}
+.pf-table{width:100%;border-collapse:collapse;margin:14px 0;font-size:12px}
+.pf-table th{text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line)}
+.pf-table td{padding:7px 8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.pf-table td.digest{color:var(--a);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px}
+.pf-note{font-size:12px;color:var(--muted);line-height:1.55;margin:14px 0}
+
+/* ---------- TOAST ---------- */
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:90;background:var(--panel-3);
+  border:1px solid var(--line-light);border-radius:10px;padding:10px 18px;font-size:13px;font-weight:600;
+  opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
+.toast.show{opacity:1}
+.toast.warn{border-color:var(--b);color:#ffb3c0}
+
+/* ---------- RESPONSIVE ---------- */
+@media(max-width:900px){
+  .btable-head{display:none}
+  .brow{grid-template-columns:1fr;gap:10px}
+  .b-cost{text-align:left;display:flex;align-items:baseline;gap:6px}
+  .b-players{justify-content:flex-start}
+}
