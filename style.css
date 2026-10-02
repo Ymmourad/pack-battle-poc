@@ -152,6 +152,26 @@ input[type=text]:focus{outline:none;border-color:var(--a)}
 .detail-row span:first-child{color:var(--muted)}
 .mode-desc{font-size:12px;color:var(--muted);line-height:1.5;margin:12px 0;padding:10px 12px;background:var(--panel-2);border-radius:10px}
 
+/* ---------- LOOT TABLE (battle details) ---------- */
+#detailModal .pf-panel{max-width:680px}
+.loot-block{margin-bottom:18px}
+.loot-head{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;margin-bottom:8px}
+.loot-head img{width:42px;height:42px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.loot-price{margin-left:auto;color:var(--green);font-variant-numeric:tabular-nums}
+.loot-table{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.loot-row{display:grid;grid-template-columns:104px 64px 96px 1fr;gap:10px;align-items:center;padding:8px 12px;font-size:12px}
+.loot-row+.loot-row{border-top:1px solid var(--line)}
+.loot-row.head{font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700;background:rgba(255,255,255,.02)}
+.loot-rar{display:flex;align-items:center;gap:6px;font-weight:700}
+.loot-rar .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.loot-pct{font-variant-numeric:tabular-nums;font-weight:700;text-align:right}
+.loot-range{color:var(--muted);font-variant-numeric:tabular-nums;text-align:right}
+.loot-imgs{display:flex;align-items:center;gap:5px;overflow:hidden}
+.loot-img{width:34px;height:46px;object-fit:cover;border-radius:5px;border:1px solid var(--line-light);background:#0b1220}
+.loot-chip{font-size:9.5px;font-weight:700;color:var(--text);background:rgba(255,255,255,.05);border:1px solid var(--line-light);
+  border-radius:6px;padding:4px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.loot-ev{font-size:11px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
+
 /* ============================================================
    BATTLE ROOM
    ============================================================ */
@@ -489,7 +509,7 @@ input[type=text]:focus{outline:none;border-color:var(--a)}
 .pf-wrap{position:fixed;inset:0;z-index:80;background:rgba(4,6,12,.75);backdrop-filter:blur(4px);
   display:flex;align-items:center;justify-content:center;padding:20px}
 .pf-panel{background:var(--panel);border:1px solid var(--line-light);border-radius:18px;padding:26px;max-width:520px;width:100%;
-  box-shadow:var(--shadow-deep);text-align:left}
+  box-shadow:var(--shadow-deep);text-align:left;max-height:calc(100vh - 40px);overflow-y:auto}
 .pf-panel h2{margin:0 0 4px;font-size:18px}
 .pf-seedrow{font-size:13px;color:var(--muted);margin:14px 0}
 .pf-seedrow code{background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:3px 8px;color:var(--gold);font-weight:700;letter-spacing:.5px}

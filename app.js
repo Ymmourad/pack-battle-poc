@@ -251,11 +251,47 @@ function renderLobby(){
   });
 }
 
+function sampleCards(catKey,type,rarKey){
+  const cat=CATEGORIES[catKey], pool=REAL_CARDS[rarKey];
+  if(catKey==="pokemon" && pool && pool.length){
+    return pool.slice(0,3).map(c=>`<img class="loot-img" src="https://images.pokemontcg.io/${c.img}.png" alt="${c.n}" title="${c.n}" loading="lazy">`).join("");
+  }
+  // text categories: show example card names in rarity-tinted chips
+  const chars=cat.chars.map(c=>typeof c==="object"?c.n:c);
+  const tierIdx=RARITIES.findIndex(r=>r.key===rarKey);
+  return Array.from({length:3},(_,j)=>{
+    const name=chars[(tierIdx*3+j)%chars.length];
+    return `<span class="loot-chip">${name}</span>`;
+  }).join("");
+}
+function expectedPackValue(type){
+  const w=WEIGHTS[type];
+  const perCard=RARITIES.reduce((s,r,i)=>s+w[i]*(r.min+r.max)/2,0);
+  return Math.round(perCard*CARDS_PER_PACK[type]);
+}
 function showBattleDetails(b){
-  $("#detailTitle").textContent=`${CATEGORIES[b.cat].label} ${b.mode==="crazy"?"Crazy":""} Battle`;
-  $("#detailBody").innerHTML =
-    b.entries.map(e=>`<div class="detail-row"><span>${e.qty}× ${e.type==="slab"?"Slab":"Normal"} packs (${CATEGORIES[e.cat].label})</span><span>${money(e.qty*PACK_PRICES[e.type])}</span></div>`).join("")+
-    `<div class="detail-row"><span>Mode</span><span>${MODE_INFO[b.mode].label}</span></div>`+
+  $("#detailTitle").textContent=`${CATEGORIES[b.cat].label} ${MODE_INFO[b.mode].label} Battle — Loot Table`;
+  const blocks=b.entries.map(e=>{
+    const cat=CATEGORIES[e.cat];
+    const rows=RARITIES.map((r,i)=>`
+      <div class="loot-row">
+        <span class="loot-rar" style="color:${r.c}"><span class="dot" style="background:${r.c}"></span>${r.label}</span>
+        <span class="loot-pct">${(WEIGHTS[e.type][i]*100).toLocaleString()}%</span>
+        <span class="loot-range">$${r.min}–$${r.max}</span>
+        <span class="loot-imgs">${sampleCards(e.cat,e.type,r.key)}</span>
+      </div>`).join("");
+    return `<div class="loot-block">
+      <div class="loot-head"><img src="assets/pack-${e.type}.png" alt="">
+        <span>${e.qty}× ${cat.label} ${e.type==="slab"?"Slab":"Normal"} packs · ${CARDS_PER_PACK[e.type]} cards each</span>
+        <span class="loot-price">${money(e.qty*PACK_PRICES[e.type])}</span></div>
+      <div class="loot-table">
+        <div class="loot-row head"><span>Rarity</span><span>Chance</span><span>Value / card</span><span>Examples</span></div>
+        ${rows}
+      </div>
+      <div class="loot-ev">Expected value ≈ ${money(expectedPackValue(e.type))} per pack (price ${money(PACK_PRICES[e.type])})</div>
+    </div>`;
+  }).join("");
+  $("#detailBody").innerHTML = blocks +
     `<div class="detail-row"><span>Rounds</span><span>${b.rounds}</span></div>`+
     `<div class="detail-row"><span>Players</span><span>${b.playersNeeded}</span></div>`+
     `<div class="detail-row"><span>Cost per round</span><span>${money(b.cost)}</span></div>`+
