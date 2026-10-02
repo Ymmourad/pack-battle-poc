@@ -206,27 +206,46 @@ function renderLobby(){
   const wrap=$("#brows"); wrap.innerHTML="";
   filterBattles().forEach(b=>{
     const row=document.createElement("div");
-    row.className="brow"+(b.bots.length>=b.playersNeeded?" locked":"");
-    const chips=b.entries.map(e=>
-      `<span class="chip"><img src="assets/pack-${e.type}.png" alt=""><span class="cname">${CATEGORIES[e.cat].label} ${e.type==="slab"?"Slab":"Normal"}</span><span class="qty">×${e.qty}</span></span>`).join("");
+    const full=b.bots.length>=b.playersNeeded;
+    row.className="brow"+(full?" locked":"")+(b.status==="live"?" live":"");
+    // highlight the most valuable entry (slab if present) with the top-case marker
+    let hi=b.entries.findIndex(e=>e.type==="slab"); if(hi<0) hi=0;
+    const tiles=[]; let budget=5;
+    // top case first (highlighted), then remaining entries dimmed behind it
+    [hi,...b.entries.map((_,i)=>i).filter(i=>i!==hi)].forEach(i=>{
+      const e=b.entries[i]; if(budget<=0) return;
+      const shown=Math.min(e.qty,4,budget); budget-=shown;
+      for(let k=0;k<shown;k++){
+        tiles.push(`<div class="case-tile${i===hi?" top":""}">
+          ${i===hi&&k===0?'<span class="tile-caret"></span>':""}
+          <img src="assets/pack-${e.type}.png" alt="">
+          ${(k===shown-1&&e.qty>shown)?`<span class="qty-badge">×${e.qty}</span>`:""}
+          <span class="case-name">${CATEGORIES[e.cat].label} ${e.type==="slab"?"Slab":"Normal"}</span>
+        </div>`);
+      }
+    });
     const avatars=b.bots.slice(0,4).map(bot=>
       `<span class="avatar" style="background:${bot.color}">${bot.name.slice(0,2).toUpperCase()}${bot.crown?'<span class="crown">👑</span>':""}</span>`).join("");
     const empty=b.playersNeeded-b.bots.length;
+    const curRound=b.status==="live"?Math.min(b.round+1,b.rounds):b.rounds;
     row.innerHTML=`
       <div class="b-status">
         ${b.status==="live"?'<span class="b-live">Live</span>':'<span class="b-waiting">Waiting</span>'}
-        <span class="b-rounds">${b.status==="live"?`Round <b>${Math.min(b.round+1,b.rounds)}</b>/${b.rounds}`:`Rounds: <b>${b.rounds}</b>`} · ${MODE_INFO[b.mode].label}</span>
+        <div class="hex"><span>${curRound}</span></div>
+        <span class="hex-cap">Round${b.rounds>1?"s":""}</span>
       </div>
-      <div class="b-scenario"><span class="scat">${CATEGORIES[b.cat].label}</span>${chips}
+      <div class="b-scenario"><span class="scat">${CATEGORIES[b.cat].label}</span>${tiles.join("")}
         <button class="details-btn" data-id="${b.id}">Details</button></div>
-      <div class="b-cost"><span><span class="cur">$</span><span class="amt">${costFmt(b.cost)}</span><span class="per">per round · ${b.playersNeeded} player${b.playersNeeded>1?"s":""}</span></span></div>
-      <div class="b-players"><span class="pfill">${b.bots.length}/${b.playersNeeded}</span>
+      <div class="b-cost"><span class="amt">$${costFmt(b.cost)}</span><span class="per">per round · ${b.playersNeeded} player${b.playersNeeded>1?"s":""}</span></div>
+      <div class="b-players">
+        ${b.mode!=="default"?`<span class="mode-tag ${b.mode}">${MODE_INFO[b.mode].label} mode</span>`:`<span class="pfill">${b.bots.length} / ${b.playersNeeded}</span>`}
         <span class="avatars">${avatars}${empty>0?`<span class="avatar empty">+</span>`:""}</span>
-        <button class="join-btn ${b.bots.length>=b.playersNeeded?"full":""}">${b.bots.length>=b.playersNeeded?"Full":"Join"}</button></div>`;
+      </div>
+      <button class="action-btn ${full?"watch":"join"}">${full?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>Watch':'Join'}</button>`;
     row.querySelector(".details-btn").onclick=(e)=>{ e.stopPropagation(); showBattleDetails(b); };
-    const jb=row.querySelector(".join-btn");
-    if(!jb.classList.contains("full")) jb.onclick=(e)=>{ e.stopPropagation(); joinBattle(b); };
-    else jb.onclick=null;
+    const ab=row.querySelector(".action-btn");
+    if(!full) ab.onclick=(e)=>{ e.stopPropagation(); joinBattle(b); };
+    else ab.onclick=(e)=>{ e.stopPropagation(); showBattleDetails(b); };
     row.onclick=()=>showBattleDetails(b);
     wrap.appendChild(row);
   });
