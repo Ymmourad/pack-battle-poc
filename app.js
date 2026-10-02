@@ -39,7 +39,7 @@ const PACK_PRICES = { normal:290, slab:640 };
 
 const MODE_INFO = {
   default:{ label:"Default", desc:"Everyone opens the same packs each round. The highest total value takes ALL cards from that round." },
-  crazy:{ label:"Crazy", desc:"A random heat multiplier (0.5×–3×) is rolled each round and applies to every pull. Highest total still takes everything." },
+  crazy:{ label:"Crazy", desc:"A random heat multiplier (0.5×–3×) is rolled each round and applies to every pull. The LOWEST total takes everything — don't get lucky!" },
   sharing:{ label:"Sharing", desc:"Lower risk: the round's total card value is split evenly between all players who opened." }
 };
 
@@ -129,17 +129,22 @@ function recharge(){ setBank(bankroll+1000,true); toast("Recharged +"+money(1000
    ============================================================ */
 let battleSeq=0;
 function makeBattle(opts={}){
-  const catKey=pick(["pokemon","pokemon","onepiece","sports"],null);
-  const entries=[];
-  if(Math.random()<0.6){
-    const type=Math.random()<0.7?"normal":"slab";
-    entries.push({cat:catKey,type,qty:type==="normal"?1+Math.floor(Math.random()*8):1+Math.floor(Math.random()*4)});
+  const catKey=opts.cat||pick(["pokemon","pokemon","onepiece","sports"],null);
+  let entries;
+  if(opts.entries && opts.entries.length){
+    entries=opts.entries.map(e=>({cat:catKey,type:e.type,qty:e.qty}));
   } else {
-    entries.push({cat:catKey,type:"normal",qty:1+Math.floor(Math.random()*5)});
-    entries.push({cat:catKey,type:"slab",qty:1+Math.floor(Math.random()*2)});
+    entries=[];
+    if(Math.random()<0.6){
+      const type=Math.random()<0.7?"normal":"slab";
+      entries.push({cat:catKey,type,qty:type==="normal"?1+Math.floor(Math.random()*8):1+Math.floor(Math.random()*4)});
+    } else {
+      entries.push({cat:catKey,type:"normal",qty:1+Math.floor(Math.random()*5)});
+      entries.push({cat:catKey,type:"slab",qty:1+Math.floor(Math.random()*2)});
+    }
   }
   const playersNeeded=opts.players||pick([2,2,3,3,4],null);
-  const rounds=pick([3,3,5],null);
+  const rounds=opts.rounds||pick([3,3,5],null);
   const mode=opts.mode||pick(["default","default","crazy","sharing"],null);
   const cost=entries.reduce((s,e)=>s+e.qty*PACK_PRICES[e.type],0);
   const b={ id:"b"+(++battleSeq), cat:catKey, entries, playersNeeded, rounds, mode, cost,
@@ -170,7 +175,7 @@ function initLobby(){
 function lobbyTick(){
   const now=new Date();
   lobby.battles.forEach(b=>{
-    if(b.status==="live"){
+    if(!b.hosted && b.status==="live"){
       if(Math.random()<0.5) b.round++;
       if(b.round>b.rounds){ // battle finished → recycle
         Object.assign(b,makeBattle()); return;
@@ -207,7 +212,7 @@ function renderLobby(){
   filterBattles().forEach(b=>{
     const row=document.createElement("div");
     const full=b.bots.length>=b.playersNeeded;
-    row.className="brow"+(full?" locked":"")+(b.status==="live"?" live":"");
+    row.className="brow"+(full?" locked":"")+(b.status==="live"?" live":"")+(b.hosted?" hosted":"");
     // highlight the most valuable entry (slab if present) with the top-case marker
     let hi=b.entries.findIndex(e=>e.type==="slab"); if(hi<0) hi=0;
     const tiles=[]; let budget=5;
@@ -232,7 +237,7 @@ function renderLobby(){
       <div class="b-status">
         ${b.status==="live"?'<span class="b-live">Live</span>':'<span class="b-waiting">Waiting</span>'}
         <div class="hex"><span>${curRound}</span></div>
-        <span class="hex-cap">Round${b.rounds>1?"s":""}</span>
+        <span class="hex-cap">${b.hosted?"Your room":"Round"+(b.rounds>1?"s":"")}</span>
       </div>
       <div class="b-scenario"><span class="scat">${CATEGORIES[b.cat].label}</span>${tiles.join("")}
         <button class="details-btn" data-id="${b.id}">Details</button></div>
@@ -291,12 +296,74 @@ function showBattleDetails(b){
       <div class="loot-ev">Expected value ≈ ${money(expectedPackValue(e.type))} per pack (price ${money(PACK_PRICES[e.type])})</div>
     </div>`;
   }).join("");
-  $("#detailBody").innerHTML = blocks +
+  $("#detailBody").innerHTML = (b.hosted?`
+    <div class="invite-row">Invite code <code>${b.code}</code><button class="fbtn" id="copyInvite">Copy</button>
+      <span class="invite-note">Share this code — friends join your room. (Simulated in this POC: bots fill open slots over time.)</span></div>`:"") + blocks +
     `<div class="detail-row"><span>Rounds</span><span>${b.rounds}</span></div>`+
     `<div class="detail-row"><span>Players</span><span>${b.playersNeeded}</span></div>`+
     `<div class="detail-row"><span>Cost per round</span><span>${money(b.cost)}</span></div>`+
     `<div class="mode-desc">${MODE_INFO[b.mode].desc}</div>`;
+  if(b.hosted){
+    const cp=$("#copyInvite");
+    if(cp) cp.onclick=()=>{ try{navigator.clipboard.writeText(b.code);}catch(e){} toast("Invite code copied: "+b.code); };
+  }
   $("#detailModal").classList.remove("hidden");
+}
+
+/* ---------- CREATE BATTLE ---------- */
+const createState={ cat:"pokemon", mode:"default", players:2, rounds:3, rows:[{type:"normal",qty:2}] };
+function createCost(){ return createState.rows.reduce((s,r)=>s+r.qty*PACK_PRICES[r.type],0); }
+function openCreateModal(){ renderCreate(); $("#createModal").classList.remove("hidden"); }
+function renderCreate(){
+  const c=createState;
+  const btns=(attr,vals,valOf,fmt)=>vals.map(v=>`<button class="fbtn${valOf===v?" active":""}" data-${attr}="${v}">${fmt?fmt(v):v}</button>`).join("");
+  const rows=c.rows.map((r,i)=>`
+    <div class="cf-row">
+      <select data-i="${i}" data-f="type">
+        <option value="normal" ${r.type==="normal"?"selected":""}>Normal · 5 cards</option>
+        <option value="slab" ${r.type==="slab"?"selected":""}>Slab · 3 cards, PSA graded</option>
+      </select>
+      <span class="cf-x">×</span>
+      <div class="stepper"><button data-i="${i}" data-d="-1">−</button><span>${r.qty}</span><button data-i="${i}" data-d="1">+</button></div>
+      ${c.rows.length>1?`<button class="cf-del" data-i="${i}">✕</button>`:""}
+    </div>`).join("");
+  const packs=c.rows.reduce((s,r)=>s+r.qty,0);
+  $("#createBody").innerHTML=`
+    <div class="cf-group"><span class="cf-label">Category</span><div class="cf-btns">${btns("cat",["pokemon","onepiece","sports"],c.cat,v=>CATEGORIES[v].label)}</div></div>
+    <div class="cf-group"><span class="cf-label">Mode</span><div class="cf-btns">${btns("mode",["default","crazy","sharing"],c.mode,v=>MODE_INFO[v].label)}</div></div>
+    <div class="cf-group"><span class="cf-label">Players</span><div class="cf-btns">${btns("pl",[2,3,4],c.players)}</div></div>
+    <div class="cf-group"><span class="cf-label">Rounds</span><div class="cf-btns">${btns("rd",[3,5],c.rounds)}</div></div>
+    <div class="cf-group"><span class="cf-label">Your packs per round</span>
+      ${rows}
+      ${c.rows.length<3?`<button class="fbtn cf-add" data-act="add">+ Add pack type</button>`:""}
+    </div>
+    <div class="cf-summary">${packs} pack${packs>1?"s":""} per round · cost <b>${money(createCost())}</b> per round</div>`;
+  $("#createBody").querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{c.cat=b.dataset.cat;renderCreate();});
+  $("#createBody").querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{c.mode=b.dataset.mode;renderCreate();});
+  $("#createBody").querySelectorAll("[data-pl]").forEach(b=>b.onclick=()=>{c.players=+b.dataset.pl;renderCreate();});
+  $("#createBody").querySelectorAll("[data-rd]").forEach(b=>b.onclick=()=>{c.rounds=+b.dataset.rd;renderCreate();});
+  $("#createBody").querySelectorAll("select[data-f]").forEach(s=>s.onchange=()=>{c.rows[+s.dataset.i].type=s.value;renderCreate();});
+  $("#createBody").querySelectorAll(".stepper button").forEach(b=>b.onclick=()=>{const r=c.rows[+b.dataset.i];r.qty=Math.max(1,Math.min(8,r.qty+ +b.dataset.d));renderCreate();});
+  $("#createBody").querySelectorAll(".cf-del").forEach(b=>b.onclick=()=>{c.rows.splice(+b.dataset.i,1);renderCreate();});
+  const add=$("#createBody").querySelector("[data-act=add]");
+  if(add) add.onclick=()=>{c.rows.push({type:"normal",qty:1});renderCreate();};
+}
+function buildCustomBattle(){
+  return makeBattle({cat:createState.cat,entries:createState.rows,players:createState.players,mode:createState.mode,rounds:createState.rounds});
+}
+function startCustomBattle(){
+  const b=buildCustomBattle();
+  $("#createModal").classList.add("hidden");
+  joinBattle(b);
+}
+function createInviteRoom(){
+  const b=buildCustomBattle();
+  b.hosted=true; b.status="waiting"; b.bots=[];
+  b.code="PB-"+hashHex(b.id).slice(0,6).toUpperCase();
+  lobby.battles.unshift(b);
+  $("#createModal").classList.add("hidden");
+  renderLobby();
+  toast("Invite room created — code "+b.code);
 }
 
 /* ============================================================
@@ -493,8 +560,9 @@ function settleRound(token){
   if(token!==room.token) return;
   const b=room.battle;
   const totals=room.players.map(p=>({id:p.id,name:p.name,total:p.roundTotal,best:p.bestCard}));
-  // winner: highest total → biggest single card → coin flip (seeded)
-  const sorted=[...totals].sort((x,y)=> y.total-x.total || y.best-x.best);
+  // Default/Sharing: highest total wins · Crazy: LOWEST total wins → then smallest single card → coin flip (seeded)
+  const crazy=b.mode==="crazy";
+  const sorted=[...totals].sort((x,y)=> crazy ? x.total-y.total || x.best-y.best : y.total-x.total || y.best-x.best);
   let winner=sorted[0];
   if(sorted.length>1 && sorted[1].total===sorted[0].total && sorted[1].best===sorted[0].best){
     winner = room.rng()>0.5?sorted[0]:sorted[1];
@@ -985,6 +1053,10 @@ function wireControls(){
   $("#pfClose").onclick=()=>$("#pfModal").classList.add("hidden");
   $("#rechargeBtn").onclick=recharge;
   $("#detailClose").onclick=()=>$("#detailModal").classList.add("hidden");
+  $("#createBtn").onclick=openCreateModal;
+  $("#cfClose").onclick=()=>$("#createModal").classList.add("hidden");
+  $("#cfStart").onclick=startCustomBattle;
+  $("#cfInvite").onclick=createInviteRoom;
   $("#autoBtn").onclick=()=>{ room.auto=!room.auto; $("#autoBtn").textContent=room.auto?"⏸ Pause":"▶ Resume"; };
   $("#muteBtn").onclick=()=>{ muted=!muted; if(masterGain) masterGain.gain.value=muted?0:0.5; $("#muteBtn").textContent=muted?"🔇 Muted":"🔊 Sound"; };
   document.querySelectorAll(".speedbar button").forEach(b=>b.onclick=()=>{

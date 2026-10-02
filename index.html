@@ -71,6 +71,7 @@
           <option value="players">Most players</option>
         </select>
         <button class="reset-btn" id="resetFilters">Reset</button>
+        <button class="create-btn" id="createBtn">+ Create Battle</button>
       </div>
     </div>
 
@@ -168,6 +169,20 @@
 <!-- ============================================================
      PROVABLY FAIR MODAL
      ============================================================ -->
+<!-- CREATE BATTLE MODAL -->
+<div id="createModal" class="pf-wrap hidden">
+  <div class="pf-panel create-panel">
+    <h2>Create Battle</h2>
+    <p class="cf-sub">Pick your packs, then start instantly vs bots or open an invite room.</p>
+    <div id="createBody"></div>
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+      <button class="btn" id="cfStart" style="margin-top:0;width:auto">Start vs Bots</button>
+      <button class="btn ghost" id="cfInvite" style="width:auto;padding:14px 24px;font-size:15px">Create Invite Room</button>
+    </div>
+    <button class="btn ghost" id="cfClose">Cancel</button>
+  </div>
+</div>
+
 <div id="pfModal" class="pf-wrap hidden">
   <div class="pf-panel">
     <h2>⚖ Provably Fair Data</h2>

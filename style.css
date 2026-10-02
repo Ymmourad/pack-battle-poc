@@ -172,6 +172,35 @@ input[type=text]:focus{outline:none;border-color:var(--a)}
   border-radius:6px;padding:4px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .loot-ev{font-size:11px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
 
+/* ---------- INVITE / HOSTED ---------- */
+.invite-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);
+  border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:12px}
+.invite-row code{background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:3px 8px;color:var(--gold);font-weight:700;letter-spacing:.5px}
+.invite-note{width:100%;color:var(--muted);font-size:11px;margin-top:2px}
+.brow.hosted{border-color:rgba(251,191,36,.45)}
+.brow.hosted .hex-cap{color:var(--gold)}
+
+/* ---------- CREATE BATTLE ---------- */
+.create-btn{background:linear-gradient(90deg,#fbbf24,#f59e0b);border:none;color:#1a1204;border-radius:8px;padding:7px 14px;
+  font-size:12px;font-weight:800;cursor:pointer;transition:.15s}
+.create-btn:hover{box-shadow:0 0 16px rgba(251,191,36,.4)}
+.cf-sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+.cf-group{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.cf-label{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:700;width:130px;flex:none}
+.cf-btns{display:flex;gap:6px;flex-wrap:wrap}
+.cf-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cf-row select{background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:7px 10px;font-size:12px}
+.cf-x{color:var(--muted);font-weight:700}
+.stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.stepper button{background:var(--panel-2);border:none;color:var(--text);width:28px;height:30px;font-size:14px;cursor:pointer}
+.stepper button:hover{background:var(--panel-3)}
+.stepper span{min-width:30px;text-align:center;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.cf-del{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;width:30px;height:30px;cursor:pointer}
+.cf-del:hover{border-color:var(--b);color:var(--b)}
+.cf-add{white-space:nowrap;flex:none}
+.cf-summary{font-size:12px;color:var(--muted);background:var(--panel-2);border-radius:10px;padding:10px 12px;margin-bottom:4px;font-variant-numeric:tabular-nums}
+.cf-summary b{color:var(--green)}
+
 /* ============================================================
    BATTLE ROOM
    ============================================================ */
