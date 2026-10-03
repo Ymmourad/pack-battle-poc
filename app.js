@@ -1,6 +1,6 @@
 "use strict";
 /* ============================================================
-   COURTYARD PACK BATTLES — Skin.Club-style battles engine
+   PACK BATTLES — Skin.Club-style battles engine
    Lobby (simulated live battles) → Battle room (join, rip, settle)
    Economy: virtual bankroll · Provably Fair: seed + nonce per round
    ============================================================ */
