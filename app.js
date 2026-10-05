@@ -39,7 +39,7 @@ const PACK_PRICES = { normal:290, slab:640 };
 
 const MODE_INFO = {
   default:{ label:"Default", desc:"Everyone opens the same packs each round. The highest total value takes ALL cards from that round." },
-  crazy:{ label:"Crazy", desc:"A random heat multiplier (0.5×–3×) is rolled each round and applies to every pull. The LOWEST total takes everything — don't get lucky!" },
+  inverse:{ label:"Inverse", desc:"A random heat multiplier (0.5×–3×) is rolled each round and applies to every pull. The LOWEST total takes everything — don't get lucky!" },
   sharing:{ label:"Sharing", desc:"Lower risk: the round's total card value is split evenly between all players who opened." }
 };
 
@@ -145,7 +145,7 @@ function makeBattle(opts={}){
   }
   const playersNeeded=opts.players||pick([2,2,3,3,4],null);
   const rounds=opts.rounds||pick([3,3,5],null);
-  const mode=opts.mode||pick(["default","default","crazy","sharing"],null);
+  const mode=opts.mode||pick(["default","default","inverse","sharing"],null);
   const cost=entries.reduce((s,e)=>s+e.qty*PACK_PRICES[e.type],0);
   const b={ id:"b"+(++battleSeq), cat:catKey, entries, playersNeeded, rounds, mode, cost,
     status:Math.random()<0.45?"live":"waiting", round:0, bots:[], viewers:12+Math.floor(Math.random()*300) };
@@ -330,7 +330,7 @@ function renderCreate(){
   const packs=c.rows.reduce((s,r)=>s+r.qty,0);
   $("#createBody").innerHTML=`
     <div class="cf-group"><span class="cf-label">Category</span><div class="cf-btns">${btns("cat",["pokemon","onepiece","sports"],c.cat,v=>CATEGORIES[v].label)}</div></div>
-    <div class="cf-group"><span class="cf-label">Mode</span><div class="cf-btns">${btns("mode",["default","crazy","sharing"],c.mode,v=>MODE_INFO[v].label)}</div></div>
+    <div class="cf-group"><span class="cf-label">Mode</span><div class="cf-btns">${btns("mode",["default","inverse","sharing"],c.mode,v=>MODE_INFO[v].label)}</div></div>
     <div class="cf-group"><span class="cf-label">Players</span><div class="cf-btns">${btns("pl",[2,3,4],c.players)}</div></div>
     <div class="cf-group"><span class="cf-label">Rounds</span><div class="cf-btns">${btns("rd",[3,5],c.rounds)}</div></div>
     <div class="cf-group"><span class="cf-label">Your packs per round</span>
@@ -447,15 +447,15 @@ async function startRound(token){
   if(bankroll < b.cost){ showForfeit(); return; }
   // fresh seeded stream for this round (PF: seed + nonce)
   room.rng=mulberry32(hashInt(room.seed+":"+room.round));
-  // crazy multiplier — rolled from the same stream so it's verifiable
-  if(b.mode==="crazy"){ const opts=[0.5,0.75,1,1.25,1.5,2,2.5,3]; room.mult=pick(opts,room.rng); } else room.mult=1;
+  // inverse multiplier — rolled from the same stream so it's verifiable
+  if(b.mode==="inverse"){ const opts=[0.5,0.75,1,1.25,1.5,2,2.5,3]; room.mult=pick(opts,room.rng); } else room.mult=1;
 
   // charge entry
   setBank(bankroll-b.cost,true);
-  addLogNote(`Round ${room.round} · entry ${money(b.cost)} charged${b.mode==="crazy"?" · 🔥 Crazy ×"+room.mult:""}`);
+  addLogNote(`Round ${room.round} · entry ${money(b.cost)} charged${b.mode==="inverse"?" · 🔥 Inverse ×"+room.mult:""}`);
 
   $("#rhRound").textContent=`${room.round} of ${b.rounds}`;
-  if(room.round>1) showRoundSplash(room.round+(b.mode==="crazy"?` (×${room.mult})`:""));
+  if(room.round>1) showRoundSplash(room.round+(b.mode==="inverse"?` (×${room.mult})`:""));
 
   // pre-generate all pulls for the round (deterministic order: user, then bots)
   room.players.forEach(p=>{ p.roundTotal=0; p.packsRipped=0; p.bestCard=0; });
@@ -560,9 +560,9 @@ function settleRound(token){
   if(token!==room.token) return;
   const b=room.battle;
   const totals=room.players.map(p=>({id:p.id,name:p.name,total:p.roundTotal,best:p.bestCard}));
-  // Default/Sharing: highest total wins · Crazy: LOWEST total wins → then smallest single card → coin flip (seeded)
-  const crazy=b.mode==="crazy";
-  const sorted=[...totals].sort((x,y)=> crazy ? x.total-y.total || x.best-y.best : y.total-x.total || y.best-x.best);
+  // Default/Sharing: highest total wins · Inverse: LOWEST total wins → then smallest single card → coin flip (seeded)
+  const inverse=b.mode==="inverse";
+  const sorted=[...totals].sort((x,y)=> inverse ? x.total-y.total || x.best-y.best : y.total-x.total || y.best-x.best);
   let winner=sorted[0];
   if(sorted.length>1 && sorted[1].total===sorted[0].total && sorted[1].best===sorted[0].best){
     winner = room.rng()>0.5?sorted[0]:sorted[1];
@@ -798,7 +798,7 @@ function updatePackStack(pid,packIdx){
 function showPF(){
   $("#pfSeed").textContent=room.seed;
   $("#pfModeNote").textContent=`Battle: ${CATEGORIES[room.battle.cat].label} · ${MODE_INFO[room.battle.mode].label} mode · ${room.battle.rounds} rounds. `+
-    (room.battle.mode==="crazy"?"Each round's heat multiplier is rolled from the same seeded stream.":"");
+    (room.battle.mode==="inverse"?"Each round's heat multiplier is rolled from the same seeded stream.":"");
   const rows=room.pfLog.map(r=>`<tr><td>${r.nonce}</td><td class="digest">${r.digest}</td><td>${r.winner}</td></tr>`).join("");
   $("#pfRows").innerHTML=rows||'<tr><td colspan="3" style="color:var(--muted)">No rounds completed yet.</td></tr>';
   $("#pfModal").classList.remove("hidden");
