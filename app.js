@@ -807,6 +807,10 @@ function showPF(){
 /* ============================================================
    SCREENS / TOAST
    ============================================================ */
+/* ---------- INSTRUCTIONS MODAL ---------- */
+function openInstructions(){ $("#instructionsModal").classList.remove("hidden"); }
+function closeInstructions(){ $("#instructionsModal").classList.add("hidden"); }
+
 function showScreen(which){
   $("#lobby").classList.toggle("hidden",which!=="lobby");
   $("#room").classList.toggle("hidden",which!=="room");
@@ -1051,6 +1055,16 @@ function wireControls(){
   $("#backLobby").onclick=backToLobby;
   $("#pfBtn").onclick=showPF;
   $("#pfClose").onclick=()=>$("#pfModal").classList.add("hidden");
+  $("#instrBtn").onclick=openInstructions;
+  $("#instrClose").onclick=closeInstructions;
+  document.querySelectorAll("#instructionsModal .instr-example").forEach(b=>b.onclick=()=>{
+    closeInstructions();
+    if(b.dataset.ex==="loot"){ showBattleDetails(lobby.battles[0]); }
+    else if(b.dataset.ex==="create"){ openCreateModal(); }
+    else { const bt=lobby.battles.find(x=>x.bots.length<x.playersNeeded && x.costPerRound<=bankroll) || lobby.battles.find(x=>x.bots.length<x.playersNeeded); if(bt) joinBattle(bt); else toast("No battles with an open slot right now"); }
+  });
+  $("#instructionsModal").addEventListener("click",e=>{ if(e.target.id==="instructionsModal") closeInstructions(); });
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeInstructions(); });
   $("#rechargeBtn").onclick=recharge;
   $("#detailClose").onclick=()=>$("#detailModal").classList.add("hidden");
   $("#createBtn").onclick=openCreateModal;
