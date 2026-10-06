@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Pack Battles</title>
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="style.css?v=2" />
 </head>
 <body>
 
@@ -205,71 +205,91 @@
      ============================================================ -->
 <div id="instructionsModal" class="pf-wrap hidden">
   <div class="pf-panel instructions-panel">
-    <h2>📖 How Pack Battles works</h2>
-    <p class="cf-sub">A quick tour of the games, features and how a battle plays out.</p>
-
-    <h3>The basics</h3>
-    <p>Join a battle from the lobby (or create your own). Every round you pay an entry fee and rip the same packs as everyone else. When the round ends, the player with the highest total card value takes everything in that round. After all rounds, whoever has taken home the most bankroll wins.</p>
-    <p>Your bankroll is virtual — use <b>+ Recharge</b> (top right) to add $1,000. Battles come in three categories: Pokémon TCG, One Piece and Sports cards.</p>
-
-    <h3>Battle modes</h3>
-    <div class="instr-modes">
-      <div class="instr-mode-card">
-        <b><span class="dot" style="background:var(--green)"></span>Default</b>
-        <p>Everyone rips the same packs each round. Highest total value takes all cards from that round.</p>
-        <span class="ex">Example — you rip $420 vs HoloHunter's $310 → you take home $730 this round.</span>
-      </div>
-      <div class="instr-mode-card">
-        <b><span class="dot" style="background:var(--b)"></span>Inverse</b>
-        <p>A random heat multiplier (0.5×–3×) is rolled each round and applies to every pull. The lowest total takes everything — don't get lucky!</p>
-        <span class="ex">Example — a ×2 roll doubles the stakes; the player who rips less wins.</span>
-      </div>
-      <div class="instr-mode-card">
-        <b><span class="dot" style="background:var(--a)"></span>Sharing</b>
-        <p>Lower risk: the round's total card value is split evenly between all players who opened.</p>
-        <span class="ex">Example — 4 players rip $1,500 total → everyone takes home ~$375.</span>
+    <div class="instr-head">
+      <div class="instr-head-icon">📖</div>
+      <div class="instr-head-text">
+        <h2>How Pack Battles works</h2>
+        <p>A quick tour of the games, features and how a battle plays out.</p>
       </div>
     </div>
 
-    <h3>Packs &amp; rarities</h3>
-    <div class="instr-packs">
-      <div class="instr-packrow"><img src="assets/pack-normal.png" alt=""><span><b>Normal pack</b> — $290 · 5 cards per rip</span></div>
-      <div class="instr-packrow"><img src="assets/pack-slab.png" alt=""><span><b>Slab pack</b> — $640 · 3 cards, PSA graded (9–10) · better rarity odds</span></div>
+    <section class="instr-section">
+      <h3><span class="instr-sec-icon">🎯</span>How it works</h3>
+      <p>Join a battle from the lobby (or create your own). Every round you pay an entry fee and rip the same packs as everyone else. When the round ends, the player with the highest total card value takes everything in that round. After all rounds, whoever has taken home the most bankroll wins.</p>
+      <p>Your bankroll is virtual — use <b>+ Recharge</b> (top right) to add $1,000. Battles come in three categories: Pokémon TCG, One Piece and Sports cards.</p>
+    </section>
+
+    <section class="instr-section">
+      <h3><span class="instr-sec-icon">🎮</span>Battle modes</h3>
+      <div class="instr-modes">
+        <div class="instr-mode-card mode-default">
+          <b><span class="dot"></span>Default</b>
+          <p>Everyone rips the same packs each round. Highest total value takes all cards from that round.</p>
+          <span class="ex">e.g. you rip $420 vs HoloHunter's $310 → you take home $730 this round.</span>
+        </div>
+        <div class="instr-mode-card mode-inverse">
+          <b><span class="dot"></span>Inverse</b>
+          <p>A random heat multiplier (0.5×–3×) is rolled each round and applies to every pull. The lowest total takes everything — don't get lucky!</p>
+          <span class="ex">e.g. a ×2 roll doubles the stakes; the player who rips less wins.</span>
+        </div>
+        <div class="instr-mode-card mode-sharing">
+          <b><span class="dot"></span>Sharing</b>
+          <p>Lower risk: the round's total card value is split evenly between all players who opened.</p>
+          <span class="ex">e.g. 4 players rip $1,500 total → everyone takes home ~$375.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="instr-section">
+      <h3><span class="instr-sec-icon">📦</span>Packs &amp; rarities</h3>
+      <div class="instr-packs">
+        <div class="instr-packrow"><img src="assets/pack-normal.png" alt=""><span><b>Normal pack</b> — $290 · 5 cards per rip</span></div>
+        <div class="instr-packrow"><img src="assets/pack-slab.png" alt=""><span><b>Slab pack</b> — $640 · 3 cards, PSA graded (9–10) · better rarity odds</span></div>
+      </div>
+      <table class="pf-table">
+        <thead><tr><th>Rarity</th><th>Value / card</th><th>Normal pack</th><th>Slab pack</th></tr></thead>
+        <tbody>
+          <tr><td style="color:#9ca3af;font-weight:700">Common</td><td>$1–$20</td><td>55%</td><td>15%</td></tr>
+          <tr><td style="color:#38bdf8;font-weight:700">Uncommon</td><td>$10–$60</td><td>25%</td><td>30%</td></tr>
+          <tr><td style="color:#a78bfa;font-weight:700">Rare</td><td>$40–$150</td><td>13%</td><td>30%</td></tr>
+          <tr><td style="color:#fbbf24;font-weight:700">Epic</td><td>$100–$400</td><td>6%</td><td>17%</td></tr>
+          <tr><td style="color:#f472b6;font-weight:700">Chase</td><td>$300–$2,500</td><td>1%</td><td>8%</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="instr-section">
+      <h3><span class="instr-sec-icon">🏠</span>Lobby features</h3>
+      <ul class="instr-list">
+        <li><b>Filter &amp; sort</b> — narrow by mode or player count, sort by price.</li>
+        <li><b>Details on any row</b> — click a battle (or its Details button) for the full loot table: drop rates, value ranges, example cards and expected value per pack.</li>
+        <li><b>+ Create Battle</b> — pick category, mode, players, rounds and packs; start instantly vs bots or open an invite room with a shareable code.</li>
+      </ul>
+    </section>
+
+    <section class="instr-section">
+      <h3><span class="instr-sec-icon">⚖</span>In the battle room</h3>
+      <ul class="instr-list">
+        <li><b>Provably Fair Data</b> (top left) shows the battle seed and each round's digest. Every card is derived from <code style="background:var(--panel-2);border-radius:4px;padding:1px 5px">hash(seed + nonce)</code>, so no outcome can be altered after the fact.</li>
+        <li><b>Pace controls</b> — 1× / 2× / Turbo speed, Pause and Sound toggle sit under the arena.</li>
+        <li><b>Bankroll matters</b> — your entry is charged every round; if you can't cover the next round, you forfeit the battle.</li>
+      </ul>
+    </section>
+
+    <div class="instr-try">
+      <span class="instr-try-label">Try it now</span>
+      <button class="instr-example" data-ex="loot">Open a sample loot table</button>
+      <button class="instr-example" data-ex="create">Create your own battle</button>
+      <button class="instr-example" data-ex="join">Join a live battle</button>
     </div>
-    <table class="pf-table">
-      <thead><tr><th>Rarity</th><th>Value / card</th><th>Normal pack</th><th>Slab pack</th></tr></thead>
-      <tbody>
-        <tr><td style="color:#9ca3af;font-weight:700">Common</td><td>$1–$20</td><td>55%</td><td>15%</td></tr>
-        <tr><td style="color:#38bdf8;font-weight:700">Uncommon</td><td>$10–$60</td><td>25%</td><td>30%</td></tr>
-        <tr><td style="color:#a78bfa;font-weight:700">Rare</td><td>$40–$150</td><td>13%</td><td>30%</td></tr>
-        <tr><td style="color:#fbbf24;font-weight:700">Epic</td><td>$100–$400</td><td>6%</td><td>17%</td></tr>
-        <tr><td style="color:#f472b6;font-weight:700">Chase</td><td>$300–$2,500</td><td>1%</td><td>8%</td></tr>
-      </tbody>
-    </table>
 
-    <h3>Lobby features</h3>
-    <p>• Filter by mode or player count and sort by price.<br>
-       • Click any battle row (or its <b>Details</b> button) for the full loot table — drop rates, value ranges, example cards and expected value per pack.<br>
-       • <b>+ Create Battle</b> builds your own: pick category, mode, players, rounds and packs — then start instantly vs bots or open an invite room with a shareable code.</p>
-
-    <h3>In the battle room</h3>
-    <p>• <b>⚖ Provably Fair Data</b> (top left) shows the battle seed and each round's digest. Every card is derived from <code style="background:var(--panel-2);border-radius:4px;padding:1px 5px">hash(seed + nonce)</code>, so no outcome can be altered after the fact.<br>
-       • Speed controls (<b>1× / 2× / Turbo</b>), Pause and Sound toggle sit under the arena.<br>
-       • Your entry is charged every round — if your bankroll can't cover the next round, you forfeit the battle.</p>
-
-    <div class="instr-examples">
-      <button class="instr-example" data-ex="loot">→ Open a sample loot table</button>
-      <button class="instr-example" data-ex="create">→ Create your own battle</button>
-      <button class="instr-example" data-ex="join">→ Join a live battle</button>
-    </div>
-
-    <button class="btn ghost" id="instrClose" style="margin-top:14px">Got it</button>
+    <button class="btn gold" id="instrClose">Got it ✓</button>
   </div>
 </div>
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
-<script src="app.js"></script>
+<script src="app.js?v=2"></script>
 </body>
 </html>
