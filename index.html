@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Pack Battles</title>
-<link rel="stylesheet" href="style.css?v=4" />
+<link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
 
@@ -48,6 +48,7 @@
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
         <span class="bankroll-pill"><span class="bankroll">$1,000</span></span>
+        <button class="collection-pill" id="collectionPill" title="Your collection — cards kept from won battles">🃏<b id="colCount">0</b><span id="colValue">$0</span></button>
         <button class="recharge-btn" id="rechargeBtn" title="Add $1,000 to your bankroll (POC)">+ Recharge</button>
       </div>
     </div>
@@ -146,6 +147,22 @@
 </div>
 
 <!-- ============================================================
+     BUYBACK SETTLEMENT (match win)
+     ============================================================ -->
+<div id="settleOverlay" class="pf-wrap hidden">
+  <div class="pf-panel settle-panel">
+    <h2>🏆 You win the battle!</h2>
+    <p class="settle-sub">Sell your cards back to the site at <b style="color:var(--gold)">90% FMV</b>. Tap a card to keep it instead — kept cards go to your collection.</p>
+    <div class="settle-grid" id="settleGrid"></div>
+    <div class="settle-summary"><span id="settleCount"></span></div>
+    <div class="settle-actions">
+      <button class="btn gold" id="settleCashBtn">💰 Cash Out</button>
+      <button class="btn ghost" id="settleSkip">Back to Lobby</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
      MATCH END OVERLAY
      ============================================================ -->
 <div id="overlay" class="overlay hidden">
@@ -166,6 +183,18 @@
     <h3 id="detailTitle">Battle details</h3>
     <div id="detailBody"></div>
     <button class="btn ghost" id="detailClose" style="margin-top:14px">Close</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     COLLECTION MODAL
+     ============================================================ -->
+<div id="collectionModal" class="pf-wrap hidden">
+  <div class="pf-panel">
+    <h2>🃏 Your Collection</h2>
+    <p class="pf-note">Cards you kept from won battles · Total FMV: <b id="colTotal">$0</b></p>
+    <div id="collectionList"></div>
+    <button class="btn ghost" id="colClose">Close</button>
   </div>
 </div>
 
@@ -273,6 +302,7 @@
         <li><b>Provably Fair Data</b> (top left) shows the battle seed and each round's digest. Every card is derived from <code style="background:var(--panel-2);border-radius:4px;padding:1px 5px">hash(seed + nonce)</code>, so no outcome can be altered after the fact.</li>
         <li><b>Pace controls</b> — 1× / 2× / Turbo speed, Pause and Sound toggle sit under the arena.</li>
         <li><b>Bankroll matters</b> — your entry is charged every round; if you can't cover the next round, you forfeit the battle.</li>
+        <li><b>Buyback</b> — when you win a battle, sell any of your cards back to the site at 90% FMV before heading back to the lobby. Cards you keep are added to your collection.</li>
       </ul>
     </section>
 
@@ -290,6 +320,6 @@
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>

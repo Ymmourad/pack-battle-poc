@@ -124,6 +124,26 @@ function setBank(v,animate){
 }
 function recharge(){ setBank(bankroll+1000,true); toast("Recharged +"+money(1000)); }
 
+/* ---------- COLLECTION (cards kept from won battles) ---------- */
+let collection=[];
+function loadCollection(){ try{ const c=JSON.parse(localStorage.getItem("pb_collection_v1")||"[]"); if(Array.isArray(c)) collection=c.filter(x=>x&&x.name); }catch(e){} }
+function saveCollection(){ try{ localStorage.setItem("pb_collection_v1",JSON.stringify(collection)); }catch(e){} }
+function addCollection(cards){
+  cards.forEach(c=>collection.push({name:c.name,value:c.value,art:c.art||null,rarity:c.rarity,color:c.color,tier:c.tier,catKey:c.catKey,type:c.type}));
+  saveCollection(); updateCollectionUI();
+}
+function collectionValue(){ return collection.reduce((s,c)=>s+(c.value||0),0); }
+function updateCollectionUI(){ $("#colCount").textContent=collection.length; $("#colValue").textContent=money(collectionValue()); }
+function showCollection(){
+  const list=$("#collectionList");
+  list.innerHTML=collection.length?collection.map(c=>{
+    const art=c.art?`<img src="${c.art}" loading="lazy" alt="" onerror="this.remove()">`:`<span class="mono">${(c.name||"?")[0].toUpperCase()}</span>`;
+    return `<div class="col-row"><div class="col-art">${art}</div><div class="col-name">${c.name}<br><span class="rar" style="color:${c.color||"#7a86a8"}">${c.rarity||""}</span></div><span class="col-val">${money(c.value)}</span></div>`;
+  }).join(""):'<p class="pf-note">No cards yet — win a battle and keep your cards to build your collection.</p>';
+  $("#colTotal").textContent=money(collectionValue());
+  $("#collectionModal").classList.remove("hidden");
+}
+
 /* ============================================================
    BATTLE TEMPLATES & LOBBY SIMULATION
    ============================================================ */
@@ -370,13 +390,15 @@ function createInviteRoom(){
    BATTLE ROOM
    ============================================================ */
 const room={ battle:null, token:0, active:false, auto:true, speed:1,
-  seed:"", round:0, mult:1, rng:null, players:[], packList:[], roundCards:{}, pfLog:[], viewerCount:0 };
+  seed:"", round:0, mult:1, rng:null, players:[], packList:[], roundCards:{}, pfLog:[], viewerCount:0,
+  userHaul:[], settle:null };
 
 function joinBattle(b){
   if(b.bots.length>=b.playersNeeded) return;
   if(bankroll<b.cost){ toast("Not enough balance — this battle costs "+money(b.cost)+" per round",true); return; }
   room.token++; const token=room.token;
   room.battle=b; room.seed=hashHex("seed"+Date.now()+battleSeq); room.round=0; room.pfLog=[]; room.mult=1;
+  room.userHaul=[]; room.settle=null; $("#settleOverlay").classList.add("hidden");
   // players: user + bots (top up to needed)
   room.players=[{id:"U",name:"You",isUser:true,color:"#38bdf8"}];
   while(room.players.length<b.playersNeeded) room.players.push({...pickUnusedBot(b)});
@@ -461,7 +483,9 @@ async function startRound(token){
   room.players.forEach(p=>{ p.roundTotal=0; p.packsRipped=0; p.bestCard=0; });
   const perPlayer={};
   room.players.forEach(p=>{
-    perPlayer[p.id]=room.packList.map(pk=>Array.from({length:CARDS_PER_PACK[pk.type]},()=>genCard(pk.cat,pk.type,room.rng,room.mult)));
+    const packs=room.packList.map(pk=>Array.from({length:CARDS_PER_PACK[pk.type]},()=>genCard(pk.cat,pk.type,room.rng,room.mult)));
+    perPlayer[p.id]=packs;
+    if(p.id==="U") packs.forEach(cards=>cards.forEach(c=>room.userHaul.push(c))); // buyback haul
   });
   room.roundCards=perPlayer;
 
@@ -603,14 +627,20 @@ function settleRound(token){
 function finishMatch(){
   room.active=false;
   const ranked=[...room.players].sort((a,b)=>(b.cumulative||0)-(a.cumulative||0));
-  const userP=room.players[0];
   const place=ranked.findIndex(p=>p.id==="U")+1;
   const userWon=place===1;
   playMatchWin(); if(userWon) triggerCascade("U");
-  $("#ovTitle").textContent = userWon ? "🏆 You win the battle!" : `🏁 ${ranked[0].name} wins`;
-  $("#ovWho").textContent = userWon ? (room.battle.mode==="sharing" ? "Sharing split · you won it" : "You took everything") : `${place}/${ranked.length} place · best of ${room.battle.rounds}`;
+  if(userWon && room.userHaul.length){ showBuybackSettlement(ranked, place); return; }
+  showMatchEndOverlay(ranked, place);
+}
+
+function showMatchEndOverlay(ranked, place, buybackCash){
+  const userP=room.players[0];
+  $("#ovTitle").textContent = place===1 ? "🏆 You win the battle!" : `🏁 ${ranked[0].name} wins`;
+  $("#ovWho").textContent = place===1 ? (room.battle.mode==="sharing" ? "Sharing split · you won it" : "You took everything") : `${place}/${ranked.length} place · best of ${room.battle.rounds}`;
   $("#ovText").innerHTML = ranked.map(p=>`<span style="color:${p.isUser?"var(--green)":p.color};font-weight:700">${p.name}</span> ${money(p.cumulative||0)}`).join(" · ");
-  $("#ovTake").textContent=userWon?`You took home ${money(userP.cumulative||0)} (staked ${money(room.battle.cost*room.round)})`:`Staked ${money(room.battle.cost*room.round)} · took home ${money(userP.cumulative||0)}`;
+  const base=place===1?`You took home ${money(userP.cumulative||0)} (staked ${money(room.battle.cost*room.round)})`:`Staked ${money(room.battle.cost*room.round)} · took home ${money(userP.cumulative||0)}`;
+  $("#ovTake").textContent=buybackCash?`${base} · Buyback +${money(buybackCash)}`:base;
   const btns=$("#ovBtns"); btns.innerHTML="";
   const again=document.createElement("button"); again.className="btn ghost"; again.textContent="Play Again";
   again.onclick=()=>{ $("#overlay").classList.add("hidden"); joinBattle(room.battle); };
@@ -618,6 +648,56 @@ function finishMatch(){
   back.onclick=backToLobby;
   btns.appendChild(again); btns.appendChild(back);
   $("#overlay").classList.remove("hidden");
+}
+
+/* ---------- BUYBACK SETTLEMENT (match win) ---------- */
+const BUYBACK_RATE=0.9;
+function showBuybackSettlement(ranked, place){
+  room.settle={ranked,place,cashApplied:false,sold:room.userHaul.map(()=>true)};
+  const grid=$("#settleGrid"); grid.innerHTML="";
+  room.userHaul.forEach((card,i)=>{
+    const el=document.createElement("div");
+    el.className="settle-card";
+    const art=card.art?`<img src="${card.art}" loading="lazy" alt="" onerror="this.remove()">`:`<span class="mono">${card.name[0].toUpperCase()}</span>`;
+    el.innerHTML=`<div class="sc-art">${art}</div>
+      <div class="sc-name">${card.name}</div>
+      <div class="sc-val">${money(card.value)}</div>
+      <span class="sc-badge">SELL</span>`;
+    el.onclick=()=>{ room.settle.sold[i]=!room.settle.sold[i]; renderSettleSelection(); };
+    grid.appendChild(el);
+  });
+  renderSettleSelection();
+  $("#settleOverlay").classList.remove("hidden");
+}
+function renderSettleSelection(){
+  const s=room.settle; if(!s) return;
+  document.querySelectorAll("#settleGrid .settle-card").forEach((el,i)=>{
+    el.classList.toggle("kept",!s.sold[i]);
+    el.querySelector(".sc-badge").textContent=s.sold[i]?"SELL":"KEEP";
+  });
+  const soldCount=s.sold.filter(Boolean).length;
+  const fmV=room.userHaul.reduce((sum,c,i)=> s.sold[i]? sum+c.value : sum,0);
+  $("#settleCount").textContent=`${soldCount} of ${room.userHaul.length} cards for sale · FMV ${money(fmV)}`;
+  $("#settleCashBtn").textContent=`💰 Cash Out +${money(Math.round(fmV*BUYBACK_RATE))}`;
+}
+function settleCashOut(){
+  const s=room.settle; if(!s||s.cashApplied) return;
+  const soldCards=[], keptCards=[];
+  room.userHaul.forEach((c,i)=>(s.sold[i]?soldCards:keptCards).push(c));
+  const cash=Math.round(soldCards.reduce((sum,c)=>sum+c.value,0)*BUYBACK_RATE);
+  s.cashApplied=true;
+  if(cash>0) setBank(bankroll+cash,true);
+  if(keptCards.length) addCollection(keptCards);
+  toast(`Buyback: sold ${soldCards.length} cards for +${money(cash)}${keptCards.length?` · kept ${keptCards.length}`:""}`);
+  $("#settleOverlay").classList.add("hidden");
+  showMatchEndOverlay(s.ranked, s.place, cash);
+}
+function settleSkip(){
+  const s=room.settle; if(!s) return;
+  addCollection(room.userHaul); // no sale — keep everything
+  room.settle=null;
+  $("#settleOverlay").classList.add("hidden");
+  backToLobby();
 }
 
 function showForfeit(){
@@ -637,7 +717,7 @@ function backToLobby(){
   room.token++; room.active=false;
   stopAmbientMusic();
   $("#room").classList.add("hidden"); $("#lobby").classList.remove("hidden");
-  $("#overlay").classList.add("hidden");
+  $("#overlay").classList.add("hidden"); $("#settleOverlay").classList.add("hidden");
   renderLobby();
 }
 
@@ -1066,6 +1146,10 @@ function wireControls(){
   $("#instructionsModal").addEventListener("click",e=>{ if(e.target.id==="instructionsModal") closeInstructions(); });
   document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeInstructions(); });
   $("#rechargeBtn").onclick=recharge;
+  $("#collectionPill").onclick=showCollection;
+  $("#colClose").onclick=()=>$("#collectionModal").classList.add("hidden");
+  $("#settleCashBtn").onclick=settleCashOut;
+  $("#settleSkip").onclick=settleSkip;
   $("#detailClose").onclick=()=>$("#detailModal").classList.add("hidden");
   $("#createBtn").onclick=openCreateModal;
   $("#cfClose").onclick=()=>$("#createModal").classList.add("hidden");
@@ -1100,6 +1184,7 @@ function wireControls(){
 
 function init(){
   bankroll=loadBank(); setBank(bankroll,false);
+  loadCollection(); updateCollectionUI();
   initLobby(); updateLobbyStats(); renderLobby();
   wireControls(); loadRealCards(); initAmbientParticles(); initPackTilt(); initViewerCounter();
 }
